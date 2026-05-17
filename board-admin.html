@@ -191,12 +191,12 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
    board-viewer.html と同じ値を貼り付けてください
    ============================================================ */
 const firebaseConfig = {
-  apiKey: "AIzaSyCblJ4SJEZhfA42sKAm4kyAwile0XAH-QE",
-  authDomain: "kamimura-board.firebaseapp.com",
-  projectId: "kamimura-board",
-  storageBucket: "kamimura-board.firebasestorage.app",
-  messagingSenderId: "301008392037",
-  appId: "1:301008392037:web:3b4543e2b414849aee5b8c"
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -293,11 +293,21 @@ async function updateBadges() {
 async function loadPostList() {
   $('postList').innerHTML='<div class="loading-msg">読み込み中...</div>';
   try {
-    const snap=await db.collection('posts').orderBy('createdAt','desc').get();
-    let posts=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const [postSnap, userSnap] = await Promise.all([
+      db.collection('posts').orderBy('createdAt','desc').get(),
+      db.collection('users').where('status','==','approved').get()
+    ]);
+    let posts = postSnap.docs.map(d=>({id:d.id,...d.data()}));
     posts.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+    const approvedUsers = userSnap.docs.map(d=>({uid:d.id,...d.data()}));
+    const totalUsers = approvedUsers.length;
     if (!posts.length){$('postList').innerHTML='<div class="empty-state">投稿がありません</div>';return;}
-    $('postList').innerHTML=posts.map(p=>`
+    $('postList').innerHTML=posts.map(p=>{
+      const readBy = p.readBy||[];
+      const readCount = readBy.length;
+      const unreadUsers = approvedUsers.filter(u=>!readBy.includes(u.uid));
+      const readPct = totalUsers>0 ? Math.round(readCount/totalUsers*100) : 0;
+      return `
       <div class="acard">
         <div class="acard-top">
           <span class="atag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
@@ -307,11 +317,26 @@ async function loadPostList() {
         <div class="acard-title">${esc(p.title)}</div>
         <div class="acard-body">${esc((p.body||'').replace(/\n/g,' '))}</div>
         <div class="acard-meta">${(p.files||[]).length?`📎 ${p.files.map(f=>esc(f.name)).join('・')}&emsp;`:''}${(p.backNumbers||[]).length?`📚 バックナンバー${p.backNumbers.length}件`:''}</div>
+        <div style="padding:8px 14px;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:11px;font-weight:700;color:var(--text2);">既読状況</span>
+            <span style="font-size:11px;color:var(--text2);">${readCount}／${totalUsers}人（${readPct}%）</span>
+          </div>
+          <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+            <div style="background:var(--green);height:100%;width:${readPct}%;border-radius:4px;"></div>
+          </div>
+          ${unreadUsers.length>0?`
+          <div style="margin-top:6px;">
+            <span style="font-size:10px;color:var(--text3);">未読：</span>
+            ${unreadUsers.map(u=>`<span style="font-size:10px;background:var(--red-l);color:var(--red);padding:1px 6px;border-radius:10px;margin:2px 2px 0;display:inline-block;">${esc(u.name)}</span>`).join('')}
+          </div>`:'<div style="margin-top:4px;font-size:10px;color:var(--green);">✓ 全員既読</div>'}
+        </div>
         <div class="acard-foot">
           <button class="btn-del" onclick="deletePost('${p.id}')">削除</button>
           <button class="btn-dm"  onclick="goToDM('${p.id}')">問い合わせを見る</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } catch(e) { $('postList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
 }
 

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>神村電機工業 社内掲示板</title>
+<style>
+:root{
+  --bg:#f5f3ef;--surface:#fff;--surface2:#faf9f6;--border:#e3ddd5;--border2:#d0c9bf;
+  --text1:#1c1a17;--text2:#6b6560;--text3:#9b9590;
+  --accent:#1b4f72;--accent-l:#eaf1f8;--accent-d:#143d58;
+  --green:#1e6b45;--green-l:#e8f5ee;--amber:#8a5c0a;--amber-l:#fdf3e0;
+  --red:#b03030;--red-l:#fbeaea;--purple:#7b5ea7;--purple-l:#f2edf8;
+  --shadow:0 1px 4px rgba(0,0,0,.07),0 .5px 1px rgba(0,0,0,.05);
+  --radius:12px;--radius-s:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text1);max-width:480px;margin:0 auto;min-height:100vh;}
+.screen{display:none;}.screen.active{display:block;}
+
+/* ── auth ── */
+.auth-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;}
+.auth-logo{font-size:11px;color:var(--text3);letter-spacing:.09em;margin-bottom:4px;text-align:center;}
+.auth-brand{font-size:19px;font-weight:700;color:var(--accent);text-align:center;margin-bottom:28px;}
+.auth-card{background:var(--surface);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:28px 24px;width:100%;}
+.auth-title{font-size:16px;font-weight:700;margin-bottom:20px;}
+.auth-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;letter-spacing:.03em;}
+.auth-input,.auth-select{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-s);padding:10px 12px;font-size:14px;font-family:inherit;background:var(--surface2);outline:none;color:var(--text1);margin-bottom:14px;}
+.auth-input:focus,.auth-select:focus{border-color:var(--accent);background:white;}
+.auth-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:30px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.03em;margin-top:4px;transition:background .15s;}
+.auth-btn:active{background:var(--accent-d);}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed;}
+.auth-err{font-size:12px;color:var(--red);margin-top:10px;display:none;line-height:1.5;}
+.auth-link{font-size:13px;color:var(--accent);text-align:center;margin-top:18px;cursor:pointer;text-decoration:underline;}
+
+/* ── pending ── */
+.pending-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;}
+.pending-icon{font-size:52px;margin-bottom:20px;}
+.pending-title{font-size:18px;font-weight:700;margin-bottom:10px;}
+.pending-name{font-size:13px;color:var(--text3);margin-bottom:12px;}
+.pending-body{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:28px;}
+.pending-logout{font-size:13px;color:var(--text3);cursor:pointer;text-decoration:underline;}
+.pending-refresh{display:inline-block;margin-bottom:16px;padding:8px 20px;border:1.5px solid var(--accent);border-radius:20px;color:var(--accent);font-size:13px;cursor:pointer;background:transparent;font-family:inherit;}
+
+/* ── header ── */
+.header{background:var(--accent);color:white;padding:14px 16px 10px;position:sticky;top:0;z-index:100;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.hdr-left .hdr-logo{font-size:10px;letter-spacing:.08em;opacity:.7;}
+.hdr-left .hdr-title{font-size:17px;font-weight:700;}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.hdr-user{font-size:11px;opacity:.85;}
+.hdr-logout{font-size:11px;opacity:.6;cursor:pointer;text-decoration:underline;}
+.hdr-unread{background:#e55;color:white;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:none;}
+.hdr-unread.show{display:block;}
+.cat-bar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.cat-bar::-webkit-scrollbar{display:none;}
+.cat-btn{flex-shrink:0;padding:4px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.cat-btn.active{background:white;color:var(--accent);border-color:white;font-weight:700;}
+
+/* ── list / card ── */
+.list{padding:12px 12px 80px;display:flex;flex-direction:column;gap:8px;}
+.loading-msg{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;transition:transform .1s;}
+.card:active{transform:scale(.99);}
+.card.pinned{border-color:var(--amber);box-shadow:0 0 0 1.5px var(--amber),var(--shadow);}
+.card-top{display:flex;align-items:center;gap:6px;padding:9px 12px 5px;}
+.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.04em;flex-shrink:0;}
+.tag-notice{background:var(--accent-l);color:var(--accent);}
+.tag-report{background:var(--purple-l);color:var(--purple);}
+.tag-event{background:var(--amber-l);color:var(--amber);}
+.tag-biz{background:var(--green-l);color:var(--green);}
+.pin-mark{font-size:12px;margin-left:auto;}
+.new-dot{width:7px;height:7px;background:var(--red);border-radius:50%;margin-left:auto;flex-shrink:0;}
+.card-body{padding:0 12px 8px;}
+.card-title{font-size:14px;line-height:1.4;margin-bottom:3px;font-weight:500;}
+.card.unread .card-title{font-weight:700;}
+.card-sub{font-size:12px;color:var(--text2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.has-file{display:flex;align-items:center;gap:4px;margin-top:4px;font-size:11px;color:var(--text3);}
+.card-foot{display:flex;align-items:center;gap:6px;padding:6px 12px 9px;border-top:1px solid var(--border);background:var(--surface2);}
+.card-date{font-size:11px;color:var(--text3);}
+.card-dm{margin-left:auto;padding:3px 10px;border-radius:20px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+.card-dm:active{background:var(--accent-l);}
+
+/* ── overlay / sheet ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:up .22s cubic-bezier(.34,1.4,.64,1);}
+@keyframes up{from{transform:translateY(50px);opacity:0;}to{transform:none;opacity:1;}}
+.sheet-grip{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:10px auto 12px;}
+.close-x{position:absolute;right:14px;top:10px;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sheet-head{padding:0 16px 12px;border-bottom:1px solid var(--border);}
+.sheet-tags{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.sheet-title{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:8px;}
+.sheet-meta{font-size:12px;color:var(--text2);}
+.sheet-body{padding:16px 16px 0;font-size:14px;line-height:1.85;white-space:pre-wrap;}
+
+/* file / backnumber */
+.file-card{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-s);padding:10px 12px;margin:12px 16px 0;cursor:pointer;text-decoration:none;color:inherit;}
+.file-card:active{background:var(--accent-l);}
+.file-icon{font-size:22px;flex-shrink:0;}
+.file-info{flex:1;min-width:0;}
+.file-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-size{font-size:11px;color:var(--text3);}
+.file-dl{font-size:11px;color:var(--accent);font-weight:600;flex-shrink:0;}
+.bn-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;}
+.bn-list{display:flex;flex-direction:column;gap:6px;margin:0 16px;}
+.bn-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-s);padding:8px 10px;cursor:pointer;text-decoration:none;color:inherit;}
+.bn-item:active{background:var(--accent-l);}
+.bn-label{font-size:13px;flex:1;}
+.bn-date{font-size:11px;color:var(--text3);}
+
+/* DM */
+.dm-notice{font-size:11px;color:var(--text3);padding:10px 0 6px;text-align:center;}
+.dm-thread{display:flex;flex-direction:column;gap:8px;padding:0 16px;margin-bottom:8px;}
+.dm-bubble{max-width:80%;}
+.dm-bubble.me{align-self:flex-end;}
+.dm-bubble.admin{align-self:flex-start;}
+.dm-btext{padding:8px 11px;border-radius:12px;font-size:13px;line-height:1.55;}
+.dm-bubble.me .dm-btext{background:var(--accent);color:white;border-radius:12px 12px 4px 12px;}
+.dm-bubble.admin .dm-btext{background:var(--surface2);border:1px solid var(--border);border-radius:12px 12px 12px 4px;}
+.dm-time{font-size:10px;color:var(--text3);margin-top:3px;}
+.dm-bubble.me .dm-time{text-align:right;}
+.dm-input-row{display:flex;gap:8px;align-items:flex-end;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);position:sticky;bottom:0;}
+.dm-input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;font-family:inherit;background:var(--surface2);outline:none;color:var(--text1);resize:none;}
+.dm-input:focus{border-color:var(--accent);background:white;}
+.dm-send{width:38px;height:38px;flex-shrink:0;border-radius:50%;background:var(--accent);color:white;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.dm-send:disabled{opacity:.5;cursor:not-allowed;}
+.empty{text-align:center;padding:56px 20px;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- ① 新規登録 -->
+<div class="screen active" id="screenRegister">
+  <div class="auth-wrap">
+    <div class="auth-logo">神村電機工業株式会社</div>
+    <div class="auth-brand">社内掲示板</div>
+    <div class="auth-card">
+      <div class="auth-title">新規登録</div>
+      <label class="auth-label">氏名</label>
+      <input class="auth-input" id="rName" type="text" placeholder="例：川島 賢次">
+      <label class="auth-label">部署</label>
+      <select class="auth-select" id="rDept">
+        <option value="">部署を選択してください</option>
+        <option>総務部</option><option>営業部</option><option>製造部</option>
+        <option>品質管理部</option><option>技術部</option><option>購買部</option>
+      </select>
+      <label class="auth-label">メールアドレス</label>
+      <input class="auth-input" id="rEmail" type="email" placeholder="例：kawashima@kamimura.co.jp">
+      <label class="auth-label">パスワード（6文字以上）</label>
+      <input class="auth-input" id="rPw" type="password" placeholder="••••••••">
+      <button class="auth-btn" id="rBtn" onclick="doRegister()">登録申請する</button>
+      <div class="auth-err" id="rErr"></div>
+    </div>
+    <div class="auth-link" onclick="switchScreen('screenLogin')">すでに登録済みの方はこちら</div>
+  </div>
+</div>
+
+<!-- ② ログイン -->
+<div class="screen" id="screenLogin">
+  <div class="auth-wrap">
+    <div class="auth-logo">神村電機工業株式会社</div>
+    <div class="auth-brand">社内掲示板</div>
+    <div class="auth-card">
+      <div class="auth-title">ログイン</div>
+      <label class="auth-label">メールアドレス</label>
+      <input class="auth-input" id="lEmail" type="email" placeholder="登録時のメールアドレス">
+      <label class="auth-label">パスワード</label>
+      <input class="auth-input" id="lPw" type="password" placeholder="••••••••">
+      <button class="auth-btn" id="lBtn" onclick="doLogin()">ログイン</button>
+      <div class="auth-err" id="lErr"></div>
+    </div>
+    <div class="auth-link" onclick="switchScreen('screenRegister')">新規登録はこちら</div>
+  </div>
+</div>
+
+<!-- ③ 承認待ち -->
+<div class="screen" id="screenPending">
+  <div class="pending-wrap">
+    <div class="pending-icon">⏳</div>
+    <div class="pending-title">承認待ちです</div>
+    <div class="pending-name" id="pendingName"></div>
+    <div class="pending-body">登録申請を受け付けました。<br>管理者が承認するまでしばらくお待ちください。<br>承認後、下のボタンを押してください。</div>
+    <button class="pending-refresh" onclick="checkApproval()">承認を確認する</button>
+    <div class="pending-logout" onclick="doLogout()">ログアウト</div>
+  </div>
+</div>
+
+<!-- ④ 掲示板 -->
+<div class="screen" id="screenBoard">
+  <div class="header">
+    <div class="hdr-top">
+      <div class="hdr-left">
+        <div class="hdr-logo">神村電機工業株式会社</div>
+        <div class="hdr-title">社内掲示板</div>
+      </div>
+      <div class="hdr-right">
+        <div class="hdr-user" id="hdrUser"></div>
+        <div class="hdr-logout" onclick="doLogout()">ログアウト</div>
+        <div class="hdr-unread" id="unreadBadge"></div>
+      </div>
+    </div>
+    <div class="cat-bar" id="catBar"></div>
+  </div>
+  <div class="list" id="list"></div>
+</div>
+
+<!-- overlays -->
+<div class="overlay" id="detailOverlay"><div class="sheet" id="detailSheet" style="position:relative;"></div></div>
+<div class="overlay" id="dmOverlay"><div class="sheet" id="dmSheet" style="position:relative;"></div></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   🔧 FIREBASE CONFIG
+   Firebaseコンソール → プロジェクト設定 → マイアプリ → SDK設定
+   からコピーしてここを書き換えてください
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCblJ4SJEZhfA42sKAm4kyAwile0XAH-QE",
+  authDomain: "kamimura-board.firebaseapp.com",
+  projectId: "kamimura-board",
+  storageBucket: "kamimura-board.firebasestorage.app",
+  messagingSenderId: "301008392037",
+  appId: "1:301008392037:web:3b4543e2b414849aee5b8c"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/* ─── state ─── */
+let currentUser = null;
+let allPosts    = [];
+let currentCat  = 'all';
+
+const CATS = [
+  {id:'all',    label:'すべて'},
+  {id:'notice', label:'お知らせ'},
+  {id:'report', label:'社内報'},
+  {id:'event',  label:'行事・イベント'},
+  {id:'biz',    label:'業務連絡'},
+];
+const TCLS = {notice:'tag-notice',report:'tag-report',event:'tag-event',biz:'tag-biz'};
+const TLBL = {notice:'お知らせ',report:'社内報',event:'行事・イベント',biz:'業務連絡'};
+const FILE_ICON = n => {const e=n.split('.').pop().toLowerCase();return e==='pdf'?'📄':['ppt','pptx'].includes(e)?'📊':['doc','docx'].includes(e)?'📝':['xls','xlsx'].includes(e)?'📈':'📎';};
+
+/* ─── utils ─── */
+const $  = id => document.getElementById(id);
+const v  = id => $(id).value.trim();
+function switchScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function showErr(id, msg) { const el=$(id); el.textContent=msg; el.style.display='block'; }
+function hideErr(id)      { const el=$(id); el.textContent=''; el.style.display='none'; }
+function fmtTs(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+function nowStr() {
+  const d = new Date();
+  return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+/* ─── auth state ─── */
+auth.onAuthStateChanged(async firebaseUser => {
+  if (!firebaseUser) { switchScreen('screenRegister'); return; }
+  try {
+    const snap = await db.collection('users').doc(firebaseUser.uid).get();
+    if (!snap.exists) { await auth.signOut(); return; }
+    currentUser = { uid: firebaseUser.uid, ...snap.data() };
+    if (currentUser.status === 'approved') enterBoard();
+    else showPending();
+  } catch(e) {
+    console.error(e);
+    switchScreen('screenRegister');
+  }
+});
+
+/* ─── register ─── */
+async function doRegister() {
+  hideErr('rErr');
+  const name=v('rName'), dept=v('rDept'), email=v('rEmail'), pw=v('rPw');
+  if (!name||!dept||!email||!pw) return showErr('rErr','すべての項目を入力してください');
+  if (pw.length < 6) return showErr('rErr','パスワードは6文字以上で設定してください');
+  const btn=$('rBtn'); btn.disabled=true; btn.textContent='送信中...';
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, pw);
+    await db.collection('users').doc(cred.user.uid).set({
+      name, dept, email, status:'pending', isAdmin:false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    // onAuthStateChanged → showPending
+  } catch(e) {
+    btn.disabled=false; btn.textContent='登録申請する';
+    const m = {
+      'auth/email-already-in-use':'このメールアドレスはすでに登録されています',
+      'auth/invalid-email':'メールアドレスの形式が正しくありません',
+      'auth/weak-password':'パスワードが弱すぎます（6文字以上）',
+    };
+    showErr('rErr', m[e.code] || e.message);
+  }
+}
+
+/* ─── login ─── */
+async function doLogin() {
+  hideErr('lErr');
+  const email=v('lEmail'), pw=v('lPw');
+  if (!email||!pw) return showErr('lErr','メールアドレスとパスワードを入力してください');
+  const btn=$('lBtn'); btn.disabled=true; btn.textContent='ログイン中...';
+  try {
+    await auth.signInWithEmailAndPassword(email, pw);
+    // onAuthStateChanged → board or pending
+  } catch(e) {
+    btn.disabled=false; btn.textContent='ログイン';
+    const m = {
+      'auth/user-not-found':'このメールアドレスは登録されていません',
+      'auth/wrong-password':'パスワードが正しくありません',
+      'auth/invalid-credential':'メールアドレスまたはパスワードが正しくありません',
+    };
+    showErr('lErr', m[e.code] || e.message);
+  }
+}
+
+/* ─── logout ─── */
+async function doLogout() {
+  await auth.signOut();
+  currentUser = null; allPosts = []; currentCat = 'all';
+}
+
+/* ─── pending ─── */
+function showPending() {
+  $('pendingName').textContent = `${currentUser.name}（${currentUser.dept}）`;
+  switchScreen('screenPending');
+}
+async function checkApproval() {
+  const snap = await db.collection('users').doc(currentUser.uid).get();
+  currentUser = { uid: currentUser.uid, ...snap.data() };
+  if (currentUser.status === 'approved') enterBoard();
+  else alert('まだ承認されていません。管理者にご連絡ください。');
+}
+
+/* ─── board ─── */
+async function enterBoard() {
+  $('hdrUser').textContent = `${currentUser.name}（${currentUser.dept}）`;
+  switchScreen('screenBoard');
+  await loadPosts();
+}
+
+async function loadPosts() {
+  $('list').innerHTML = '<div class="loading-msg">📋 読み込み中...</div>';
+  try {
+    const snap = await db.collection('posts').orderBy('createdAt','desc').get();
+    allPosts = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    allPosts.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
+    renderCats();
+    renderList();
+  } catch(e) {
+    $('list').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>読み込みに失敗しました<br><button onclick="loadPosts()" style="margin-top:12px;padding:6px 18px;border-radius:20px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;font-family:inherit;">再試行</button></div>`;
+  }
+}
+
+function renderCats() {
+  const bar = $('catBar');
+  bar.innerHTML = CATS.map(c =>
+    `<button class="cat-btn${c.id===currentCat?' active':''}" onclick="setCat('${c.id}')">${c.label}</button>`
+  ).join('');
+}
+function setCat(id) { currentCat=id; renderCats(); renderList(); }
+
+function renderList() {
+  const uid = currentUser.uid;
+  let items = currentCat==='all' ? allPosts : allPosts.filter(p=>p.cat===currentCat);
+  const unread = allPosts.filter(p=>!(p.readBy||[]).includes(uid)).length;
+  const badge = $('unreadBadge');
+  badge.textContent = `${unread} 未読`;
+  badge.classList.toggle('show', unread>0);
+  if (!items.length) {
+    $('list').innerHTML = `<div class="empty"><div class="empty-icon">📭</div>投稿がありません</div>`;
+    return;
+  }
+  $('list').innerHTML = items.map(p => {
+    const read = (p.readBy||[]).includes(uid);
+    const hasFile = p.files && p.files.length > 0;
+    return `
+      <div class="card${p.pinned?' pinned':''}${!read?' unread':''}" onclick="openDetail('${p.id}')">
+        <div class="card-top">
+          <span class="tag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
+          ${p.pinned?`<span class="pin-mark">📌</span>`:''}
+          ${!read?`<span class="new-dot"></span>`:''}
+        </div>
+        <div class="card-body">
+          <div class="card-title">${escHtml(p.title)}</div>
+          <div class="card-sub">${escHtml((p.body||'').replace(/\n/g,' '))}</div>
+          ${hasFile?`<div class="has-file">📎 ${p.files.map(f=>escHtml(f.name)).join('・')}</div>`:''}
+        </div>
+        <div class="card-foot">
+          <span class="card-date">${fmtTs(p.createdAt)}</span>
+          <button class="card-dm" onclick="event.stopPropagation();openDM('${p.id}')">管理者に問い合わせ</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─── detail ─── */
+async function openDetail(postId) {
+  const p = allPosts.find(x=>x.id===postId); if (!p) return;
+  // mark as read
+  if (!(p.readBy||[]).includes(currentUser.uid)) {
+    p.readBy = [...(p.readBy||[]), currentUser.uid];
+    db.collection('posts').doc(postId).update({
+      readBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    }).catch(console.error);
+    renderList();
+  }
+  const hasBN = p.backNumbers && p.backNumbers.length > 0;
+  const sheet = $('detailSheet');
+  sheet.innerHTML = `
+    <div style="position:relative;"><div class="sheet-grip"></div><button class="close-x" onclick="closeOverlay('detailOverlay')">✕</button></div>
+    <div class="sheet-head">
+      <div class="sheet-tags">
+        <span class="tag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
+        ${p.pinned?`<span style="font-size:13px">📌 ピン留め</span>`:''}
+      </div>
+      <div class="sheet-title">${escHtml(p.title)}</div>
+      <div class="sheet-meta">投稿日：${fmtTs(p.createdAt)}　神村電機工業 総務</div>
+    </div>
+    <div class="sheet-body">${escHtml(p.body||'')}</div>
+    ${(p.files||[]).map(f=>`
+      <a class="file-card" href="${escHtml(f.url||'#')}" target="_blank" rel="noopener">
+        <div class="file-icon">${FILE_ICON(f.name)}</div>
+        <div class="file-info"><div class="file-name">${escHtml(f.name)}</div><div class="file-size">${escHtml(f.size||'')}</div></div>
+        <div class="file-dl">開く ↗</div>
+      </a>`).join('')}
+    ${hasBN?`
+      <div class="bn-toggle" onclick="toggleBN(this)">📚 バックナンバー（${p.backNumbers.length}件）<span>▼</span></div>
+      <div class="bn-list" id="bnList">
+        ${p.backNumbers.map(bn=>`
+          <a class="bn-item" href="${escHtml(bn.url||'#')}" target="_blank" rel="noopener">
+            <span style="font-size:16px">📄</span>
+            <span class="bn-label">${escHtml(bn.label)}</span>
+            <span class="bn-date">${bn.date||''}</span>
+            <span style="font-size:11px;color:var(--accent);font-weight:600;margin-left:6px;">↗</span>
+          </a>`).join('')}
+      </div>`:''}
+    <div style="height:20px;"></div>`;
+  $('detailOverlay').classList.add('open');
+}
+
+function toggleBN(el) {
+  const list = $('bnList');
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : '';
+  el.querySelector('span:last-child').textContent = open ? '▶' : '▼';
+}
+
+/* ─── DM ─── */
+async function openDM(postId) {
+  const p = allPosts.find(x=>x.id===postId); if (!p) return;
+  const sheet = $('dmSheet');
+  sheet.innerHTML = `<div style="position:relative;"><div class="sheet-grip"></div><button class="close-x" onclick="closeOverlay('dmOverlay')">✕</button></div>
+    <div style="padding:0 16px 12px;border-bottom:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">管理者への問い合わせ</div>
+      <div style="font-size:14px;font-weight:700;line-height:1.4;">${escHtml(p.title)}</div>
+    </div>
+    <div class="dm-notice">このやり取りは管理者と本人のみ閲覧できます</div>
+    <div class="dm-thread" id="dmThread"><div style="text-align:center;font-size:12px;color:var(--text3);">読み込み中...</div></div>
+    <div class="dm-input-row">
+      <textarea class="dm-input" id="dmInput" rows="1" placeholder="問い合わせ内容を入力…" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+      <button class="dm-send" id="dmSendBtn" onclick="sendDM('${postId}')">➤</button>
+    </div>`;
+  $('dmOverlay').classList.add('open');
+  await loadDMThread(postId);
+}
+
+async function loadDMThread(postId) {
+  const threadId = `${currentUser.uid}_${postId}`;
+  try {
+    const snap = await db.collection('threads').doc(threadId).get();
+    const msgs  = snap.exists ? (snap.data().messages || []) : [];
+    const el    = $('dmThread');
+    if (!msgs.length) {
+      el.innerHTML = `<div style="text-align:center;font-size:12px;color:var(--text3);padding:16px 0;">まだメッセージはありません</div>`;
+      return;
+    }
+    el.innerHTML = msgs.map(m=>`
+      <div class="dm-bubble ${m.from==='user'?'me':'admin'}">
+        <div class="dm-btext">${escHtml(m.text)}</div>
+        <div class="dm-time">${m.time||''}</div>
+      </div>`).join('');
+    el.lastElementChild?.scrollIntoView({behavior:'smooth'});
+  } catch(e) { console.error(e); }
+}
+
+async function sendDM(postId) {
+  const input = $('dmInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  const btn = $('dmSendBtn'); btn.disabled=true;
+  const threadId = `${currentUser.uid}_${postId}`;
+  const msg = { from:'user', text, time:nowStr() };
+  try {
+    await db.collection('threads').doc(threadId).set({
+      userId: currentUser.uid, userName: currentUser.name, postId,
+      messages: firebase.firestore.FieldValue.arrayUnion(msg),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+    input.value = ''; input.style.height = '';
+    await loadDMThread(postId);
+  } catch(e) { console.error(e); alert('送信に失敗しました'); }
+  btn.disabled = false;
+}
+
+/* ─── overlay ─── */
+function closeOverlay(id) { $(id).classList.remove('open'); }
+$('detailOverlay').addEventListener('click', e => { if(e.target.id==='detailOverlay') closeOverlay('detailOverlay'); });
+$('dmOverlay').addEventListener('click',     e => { if(e.target.id==='dmOverlay')     closeOverlay('dmOverlay'); });
+</script>
+</body>
+</html>

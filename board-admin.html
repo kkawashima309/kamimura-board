@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>掲示板 管理者画面 | 神村電機工業</title>
+<style>
+:root{
+  --bg:#f0ede8;--surface:#fff;--surface2:#f8f6f2;--border:#e0d9cf;--border2:#ccc3b7;
+  --text1:#1c1a17;--text2:#6b6560;--text3:#9b9590;
+  --accent:#1b4f72;--accent-l:#eaf1f8;--accent-d:#143d58;
+  --green:#1e6b45;--green-l:#e8f5ee;--amber:#8a5c0a;--amber-l:#fdf3e0;
+  --red:#b03030;--red-l:#fbeaea;--purple:#7b5ea7;--purple-l:#f2edf8;
+  --shadow:0 1px 4px rgba(0,0,0,.07),0 .5px 1px rgba(0,0,0,.05);
+  --radius:12px;--radius-s:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;}
+.screen{display:none;}.screen.active{display:block;}
+
+/* login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{background:var(--surface);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:36px 32px;width:100%;max-width:380px;}
+.login-logo{font-size:12px;color:var(--text3);letter-spacing:.08em;margin-bottom:4px;}
+.login-title{font-size:20px;font-weight:700;margin-bottom:6px;}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;}
+.form-input,.form-select,.form-textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-s);padding:10px 12px;font-size:14px;font-family:inherit;background:var(--surface2);outline:none;color:var(--text1);margin-bottom:14px;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);background:white;}
+.form-textarea{min-height:110px;resize:vertical;line-height:1.7;margin-bottom:0;}
+.primary-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:30px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.03em;margin-top:4px;}
+.primary-btn:active{background:var(--accent-d);}
+.primary-btn:disabled{opacity:.6;cursor:not-allowed;}
+.err-msg{font-size:12px;color:var(--red);margin-top:8px;display:none;}
+
+/* admin layout */
+.admin-header{background:var(--accent-d);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.admin-header-title{font-size:15px;font-weight:700;}
+.admin-header-sub{font-size:11px;opacity:.7;margin-top:1px;}
+.logout-btn{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;}
+.admin-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:57px;z-index:90;overflow-x:auto;scrollbar-width:none;}
+.admin-tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;padding:12px 16px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;font-family:inherit;color:var(--text2);border-bottom:2.5px solid transparent;white-space:nowrap;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700;}
+.tab-badge{display:inline-block;background:var(--red);color:white;font-size:10px;font-weight:700;border-radius:10px;padding:1px 5px;margin-left:4px;vertical-align:middle;}
+
+/* post cards */
+.section-wrap{padding:16px;display:flex;flex-direction:column;gap:8px;max-width:800px;margin:0 auto;}
+.acard{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);}
+.acard-top{display:flex;align-items:center;gap:8px;padding:10px 14px 6px;}
+.atag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.04em;}
+.tag-notice{background:var(--accent-l);color:var(--accent);}
+.tag-report{background:var(--purple-l);color:var(--purple);}
+.tag-event{background:var(--amber-l);color:var(--amber);}
+.tag-biz{background:var(--green-l);color:var(--green);}
+.acard-title{font-size:14px;font-weight:600;padding:0 14px 5px;line-height:1.4;}
+.acard-body{font-size:12px;color:var(--text2);padding:0 14px 8px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.acard-meta{font-size:11px;color:var(--text3);padding:0 14px 8px;}
+.acard-foot{display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 var(--radius) var(--radius);flex-wrap:wrap;}
+.acard-foot button{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;font-family:inherit;background:white;}
+.btn-del{color:var(--red);border-color:var(--red);}
+.btn-del:active{background:var(--red-l);}
+.btn-dm{color:var(--green);border-color:var(--green);margin-left:auto;}
+.btn-dm:active{background:var(--green-l);}
+
+/* user cards */
+.user-filter{display:flex;gap:6px;padding:12px 16px 6px;overflow-x:auto;scrollbar-width:none;max-width:800px;margin:0 auto;}
+.user-filter::-webkit-scrollbar{display:none;}
+.uf-btn{flex-shrink:0;padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;}
+.uf-btn.active{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.user-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+.user-card.pending{border-color:var(--amber);box-shadow:0 0 0 1.5px var(--amber),var(--shadow);}
+.user-info{display:flex;align-items:center;gap:12px;padding:12px 14px;}
+.user-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:white;flex-shrink:0;}
+.user-name{font-size:14px;font-weight:700;}
+.user-detail{font-size:12px;color:var(--text2);margin-top:2px;}
+.user-status-badge{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.st-approved{background:var(--green-l);color:var(--green);}
+.st-pending{background:var(--amber-l);color:var(--amber);}
+.st-rejected{background:var(--red-l);color:var(--red);}
+.user-actions{display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--surface2);}
+.user-actions button{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;font-family:inherit;}
+.btn-approve{background:var(--green-l);color:var(--green);border-color:var(--green);}
+.btn-approve:active{background:var(--green);color:white;}
+.btn-reject{background:var(--red-l);color:var(--red);border-color:var(--red);}
+.btn-reject:active{background:var(--red);color:white;}
+.btn-revoke{background:white;color:var(--text2);border-color:var(--border2);}
+
+/* new post form */
+.form-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow);}
+.form-title{font-size:16px;font-weight:700;margin-bottom:20px;}
+.form-row{margin-bottom:16px;}
+.form-row-label{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;display:block;}
+.cat-row{display:flex;gap:6px;flex-wrap:wrap;}
+.csel{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);}
+.csel.sel-notice{background:var(--accent-l);border-color:var(--accent);color:var(--accent);}
+.csel.sel-report{background:var(--purple-l);border-color:var(--purple);color:var(--purple);}
+.csel.sel-event{background:var(--amber-l);border-color:var(--amber);color:var(--amber);}
+.csel.sel-biz{background:var(--green-l);border-color:var(--green);color:var(--green);}
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius-s);padding:18px;text-align:center;cursor:pointer;background:var(--surface2);transition:all .15s;}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-l);}
+.upload-zone input{display:none;}
+.file-rows{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.file-row{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-s);padding:8px 10px;}
+.file-row-name{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-row-size{font-size:11px;color:var(--text3);}
+.file-rm{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;}
+.pin-row{display:flex;align-items:center;gap:8px;}
+.pin-row input{width:17px;height:17px;accent-color:var(--amber);}
+.pin-row label{font-size:13px;color:var(--text2);cursor:pointer;}
+
+/* DM panel */
+.dm-post-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-s);overflow:hidden;margin-bottom:12px;}
+.dm-post-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.dm-post-item:last-child{border-bottom:none;}
+.dm-post-item:hover{background:var(--accent-l);}
+.dm-post-item.active{background:var(--accent);color:white;}
+.dm-post-item.active .dm-sub{color:rgba(255,255,255,.7);}
+.dm-pname{flex:1;font-size:13px;font-weight:600;}
+.dm-sub{font-size:11px;color:var(--text3);}
+.dm-win{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
+.dm-win-head{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.dm-user-tabs{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--surface2);overflow-x:auto;scrollbar-width:none;}
+.dm-user-tabs::-webkit-scrollbar{display:none;}
+.dm-utab{flex-shrink:0;padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text2);}
+.dm-utab.active{background:var(--accent);border-color:var(--accent);color:white;}
+.dm-thread{padding:12px;display:flex;flex-direction:column;gap:8px;min-height:100px;}
+.dm-bbl{max-width:78%;}
+.dm-bbl.user{align-self:flex-start;}
+.dm-bbl.admin{align-self:flex-end;}
+.dm-bbl-who{font-size:10px;color:var(--text3);margin-bottom:2px;}
+.dm-bbl-text{padding:8px 11px;border-radius:12px;font-size:13px;line-height:1.55;}
+.dm-bbl.user .dm-bbl-text{background:var(--surface2);border:1px solid var(--border);border-radius:12px 12px 12px 4px;}
+.dm-bbl.admin .dm-bbl-text{background:var(--accent);color:white;border-radius:12px 12px 4px 12px;}
+.dm-bbl-time{font-size:10px;color:var(--text3);margin-top:3px;}
+.dm-bbl.admin .dm-bbl-time{text-align:right;}
+.dm-reply-row{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;border-top:1px solid var(--border);}
+.dm-reply-input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;font-family:inherit;background:var(--surface2);outline:none;color:var(--text1);resize:none;}
+.dm-reply-input:focus{border-color:var(--accent);background:white;}
+.dm-reply-btn{width:38px;height:38px;border-radius:50%;background:var(--accent);color:white;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dm-reply-btn:disabled{opacity:.5;cursor:not-allowed;}
+.empty-state{text-align:center;color:var(--text3);font-size:13px;padding:40px 20px;}
+.loading-msg{text-align:center;color:var(--text3);font-size:13px;padding:30px 20px;}
+</style>
+</head>
+<body>
+
+<!-- ① Login -->
+<div class="screen active" id="screenLogin">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">神村電機工業株式会社</div>
+      <div class="login-title">掲示板 管理者ログイン</div>
+      <div class="login-sub">管理者専用画面です。</div>
+      <label class="form-label">メールアドレス</label>
+      <input class="form-input" id="aEmail" type="email" placeholder="管理者メールアドレス">
+      <label class="form-label">パスワード</label>
+      <input class="form-input" id="aPw" type="password" placeholder="••••••••">
+      <button class="primary-btn" id="aLoginBtn" onclick="doAdminLogin()">ログイン</button>
+      <div class="err-msg" id="aErr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ② Admin UI -->
+<div class="screen" id="screenAdmin">
+  <div class="admin-header">
+    <div><div class="admin-header-title">掲示板 管理者画面</div><div class="admin-header-sub">神村電機工業株式会社 総務・川島</div></div>
+    <button class="logout-btn" onclick="doAdminLogout()">ログアウト</button>
+  </div>
+  <div class="admin-tabs">
+    <button class="tab-btn active" data-tab="posts" onclick="switchTab(this)">投稿一覧</button>
+    <button class="tab-btn" data-tab="new" onclick="switchTab(this)">新規投稿</button>
+    <button class="tab-btn" data-tab="users" onclick="switchTab(this)">社員承認 <span class="tab-badge" id="userBadge" style="display:none;">0</span></button>
+    <button class="tab-btn" data-tab="dms" onclick="switchTab(this)">問い合わせ <span class="tab-badge" id="dmBadge" style="display:none;">0</span></button>
+  </div>
+  <div id="tabPosts"><div class="section-wrap" id="postList"><div class="loading-msg">読み込み中...</div></div></div>
+  <div id="tabNew" style="display:none;"><div class="section-wrap"><div class="form-card" id="newPostForm"></div></div></div>
+  <div id="tabUsers" style="display:none;"><div class="user-filter" id="userFilter"><button class="uf-btn active" data-uf="all" onclick="setUF(this)">すべて</button><button class="uf-btn" data-uf="pending" onclick="setUF(this)">承認待ち</button><button class="uf-btn" data-uf="approved" onclick="setUF(this)">承認済み</button><button class="uf-btn" data-uf="rejected" onclick="setUF(this)">否認</button></div><div class="section-wrap" id="userList"></div></div>
+  <div id="tabDms" style="display:none;"><div class="section-wrap"><div id="dmPanel"></div></div></div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   🔧 FIREBASE CONFIG
+   board-viewer.html と同じ値を貼り付けてください
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCblJ4SJEZhfA42sKAm4kyAwile0XAH-QE",
+  authDomain: "kamimura-board.firebaseapp.com",
+  projectId: "kamimura-board",
+  storageBucket: "kamimura-board.firebasestorage.app",
+  messagingSenderId: "301008392037",
+  appId: "1:301008392037:web:3b4543e2b414849aee5b8c"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/* ─── state ─── */
+let adminUser   = null;
+let selCat      = 'notice';
+let ufState     = 'all';
+let fileEntries = [];  // {name, url, size}
+let bnEntries   = [];  // {label, date, url}
+let activeDmPost   = null;
+let activeDmUserId = null;
+
+const TLBL   = {notice:'お知らせ',report:'社内報',event:'行事・イベント',biz:'業務連絡'};
+const TCLS   = {notice:'tag-notice',report:'tag-report',event:'tag-event',biz:'tag-biz'};
+const AVCOLS = ['#1b4f72','#1e6b45','#8a5c0a','#7b5ea7','#b03030'];
+
+const $    = id => document.getElementById(id);
+const v    = id => $(id)?.value?.trim()||'';
+const esc  = s  => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function fmtTs(ts) { if(!ts)return''; const d=ts.toDate?ts.toDate():new Date(ts); return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`; }
+function nowStr() { const d=new Date(); return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function avColor(name) { let h=0; for(let c of name)h=(h*31+c.charCodeAt(0))%AVCOLS.length; return AVCOLS[Math.abs(h)]; }
+
+function showErr(id,msg){const el=$(id);el.textContent=msg;el.style.display='block';}
+function hideErr(id){const el=$(id);if(el){el.textContent='';el.style.display='none';}}
+
+/* ─── auth state ─── */
+auth.onAuthStateChanged(async user => {
+  if (!user) { switchScreen('screenLogin'); return; }
+  try {
+    const snap = await db.collection('users').doc(user.uid).get();
+    if (!snap.exists || !snap.data().isAdmin) {
+      await auth.signOut();
+      showErr('aErr','管理者権限がありません');
+      return;
+    }
+    adminUser = { uid: user.uid, ...snap.data() };
+    switchScreen('screenAdmin');
+    loadPostList();
+    updateBadges();
+  } catch(e) { console.error(e); showErr('aErr', e.message); await auth.signOut(); }
+});
+
+/* ─── admin login ─── */
+async function doAdminLogin() {
+  hideErr('aErr');
+  const email=v('aEmail'), pw=v('aPw');
+  if (!email||!pw) return showErr('aErr','メールとパスワードを入力してください');
+  const btn=$('aLoginBtn'); btn.disabled=true; btn.textContent='ログイン中...';
+  try {
+    await auth.signInWithEmailAndPassword(email, pw);
+  } catch(e) {
+    btn.disabled=false; btn.textContent='ログイン';
+    const m={'auth/user-not-found':'登録されていません','auth/wrong-password':'パスワードが違います','auth/invalid-credential':'メールまたはパスワードが正しくありません'};
+    showErr('aErr', m[e.code]||e.message);
+  }
+}
+async function doAdminLogout() { await auth.signOut(); adminUser=null; }
+
+/* ─── screen / tab ─── */
+function switchScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function switchTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['tabPosts','tabNew','tabUsers','tabDms'].forEach(t=>$(t).style.display='none');
+  const map={posts:'tabPosts',new:'tabNew',users:'tabUsers',dms:'tabDms'};
+  $(map[btn.dataset.tab]).style.display='';
+  if (btn.dataset.tab==='posts')  loadPostList();
+  if (btn.dataset.tab==='new')    renderNewPostForm();
+  if (btn.dataset.tab==='users')  loadUserList();
+  if (btn.dataset.tab==='dms')    loadDMPanel();
+}
+
+/* ─── badges ─── */
+async function updateBadges() {
+  const uSnap = await db.collection('users').where('status','==','pending').get();
+  const ub=$('userBadge'); ub.textContent=uSnap.size; ub.style.display=uSnap.size>0?'inline-block':'none';
+
+  const tSnap = await db.collection('threads').get();
+  const db2Count = tSnap.docs.reduce((s,d)=>{
+    const msgs=(d.data().messages||[]).filter(m=>m.from==='user');
+    return s+msgs.length;
+  },0);
+  const db2=$('dmBadge'); db2.textContent=db2Count; db2.style.display=db2Count>0?'inline-block':'none';
+}
+
+/* ─── post list ─── */
+async function loadPostList() {
+  $('postList').innerHTML='<div class="loading-msg">読み込み中...</div>';
+  try {
+    const snap=await db.collection('posts').orderBy('createdAt','desc').get();
+    let posts=snap.docs.map(d=>({id:d.id,...d.data()}));
+    posts.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+    if (!posts.length){$('postList').innerHTML='<div class="empty-state">投稿がありません</div>';return;}
+    $('postList').innerHTML=posts.map(p=>`
+      <div class="acard">
+        <div class="acard-top">
+          <span class="atag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
+          ${p.pinned?`<span style="font-size:12px">📌</span>`:''}
+          <span style="font-size:11px;color:var(--text3);margin-left:auto;">${fmtTs(p.createdAt)}</span>
+        </div>
+        <div class="acard-title">${esc(p.title)}</div>
+        <div class="acard-body">${esc((p.body||'').replace(/\n/g,' '))}</div>
+        <div class="acard-meta">${(p.files||[]).length?`📎 ${p.files.map(f=>esc(f.name)).join('・')}&emsp;`:''}${(p.backNumbers||[]).length?`📚 バックナンバー${p.backNumbers.length}件`:''}</div>
+        <div class="acard-foot">
+          <button class="btn-del" onclick="deletePost('${p.id}')">削除</button>
+          <button class="btn-dm"  onclick="goToDM('${p.id}')">問い合わせを見る</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { $('postList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
+}
+
+async function deletePost(id) {
+  if (!confirm('この投稿を削除しますか？')) return;
+  await db.collection('posts').doc(id).delete();
+  loadPostList();
+}
+
+/* ─── new post form ─── */
+function renderNewPostForm() {
+  fileEntries=[]; bnEntries=[]; selCat='notice';
+  $('newPostForm').innerHTML=`
+    <div class="form-title">新規投稿</div>
+    <div class="form-row">
+      <span class="form-row-label">カテゴリ</span>
+      <div class="cat-row" id="catRow">
+        <button class="csel sel-notice" data-cat="notice" onclick="selectCat(this)">お知らせ</button>
+        <button class="csel" data-cat="report" onclick="selectCat(this)">社内報</button>
+        <button class="csel" data-cat="event"  onclick="selectCat(this)">行事・イベント</button>
+        <button class="csel" data-cat="biz"    onclick="selectCat(this)">業務連絡</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <span class="form-row-label">タイトル</span>
+      <input class="form-input" id="fTitle" type="text" placeholder="タイトルを入力">
+    </div>
+    <div class="form-row">
+      <span class="form-row-label">本文</span>
+      <textarea class="form-textarea" id="fBody" placeholder="本文を入力（改行そのまま反映）"></textarea>
+    </div>
+    <div class="form-row" style="margin-top:14px;">
+      <span class="form-row-label">ファイルリンク（OneDrive・Google Driveの共有リンク）</span>
+      <input class="form-input" id="fFileName" type="text" placeholder="ファイル名 例：神村だより_2026年5月号.pdf">
+      <input class="form-input" id="fFileUrl"  type="url"  placeholder="共有リンク https://...">
+      <input class="form-input" id="fFileSize" type="text" placeholder="サイズ 例：2.4 MB（任意）">
+      <button onclick="addFile()" style="padding:7px 16px;border:1.5px solid var(--accent);border-radius:20px;background:var(--accent-l);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">+ ファイル追加</button>
+      <div class="file-rows" id="fileRows"></div>
+    </div>
+    <div class="form-row">
+      <span class="form-row-label">バックナンバー（社内報などの過去号）</span>
+      <input class="form-input" id="fBnLabel" type="text" placeholder="例：2026年4月号">
+      <input class="form-input" id="fBnDate"  type="text" placeholder="例：2026/04/01">
+      <input class="form-input" id="fBnUrl"   type="url"  placeholder="共有リンク https://...">
+      <button onclick="addBN()" style="padding:7px 16px;border:1.5px solid var(--purple);border-radius:20px;background:var(--purple-l);color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">+ バックナンバー追加</button>
+      <div class="file-rows" id="bnRows"></div>
+    </div>
+    <div class="form-row">
+      <div class="pin-row"><input type="checkbox" id="fPin"><label for="fPin">📌 ピン留め（重要・常時上部に表示）</label></div>
+    </div>
+    <div class="err-msg" id="postErr"></div>
+    <button class="primary-btn" id="postSubmitBtn" onclick="submitPost()" style="margin-top:16px;">投稿する</button>
+  `;
+}
+
+function selectCat(btn) {
+  selCat=btn.dataset.cat;
+  document.querySelectorAll('#catRow .csel').forEach(b=>{b.className='csel';});
+  btn.classList.add(`sel-${selCat}`);
+}
+
+function addFile() {
+  const name=v('fFileName'), url=v('fFileUrl'), size=v('fFileSize');
+  if (!name||!url) return alert('ファイル名とリンクを入力してください');
+  fileEntries.push({name,url,size});
+  $('fFileName').value=$('fFileUrl').value=$('fFileSize').value='';
+  renderFileRows();
+}
+function renderFileRows() {
+  $('fileRows').innerHTML=fileEntries.map((f,i)=>`
+    <div class="file-row">
+      <span style="font-size:16px;">📄</span>
+      <span class="file-row-name">${esc(f.name)}</span>
+      <span class="file-row-size">${esc(f.size)}</span>
+      <button class="file-rm" onclick="fileEntries.splice(${i},1);renderFileRows()">✕</button>
+    </div>`).join('');
+}
+
+function addBN() {
+  const label=v('fBnLabel'), date=v('fBnDate'), url=v('fBnUrl');
+  if (!label) return alert('ラベルを入力してください');
+  bnEntries.push({label,date,url});
+  $('fBnLabel').value=$('fBnDate').value=$('fBnUrl').value='';
+  renderBNRows();
+}
+function renderBNRows() {
+  $('bnRows').innerHTML=bnEntries.map((b,i)=>`
+    <div class="file-row">
+      <span style="font-size:16px;">📚</span>
+      <span class="file-row-name">${esc(b.label)}</span>
+      <span class="file-row-size">${esc(b.date)}</span>
+      <button class="file-rm" onclick="bnEntries.splice(${i},1);renderBNRows()">✕</button>
+    </div>`).join('');
+}
+
+async function submitPost() {
+  hideErr('postErr');
+  const title=v('fTitle'), body=v('fBody'), pin=$('fPin').checked;
+  if (!title||!body) return showErr('postErr','タイトルと本文を入力してください');
+  const btn=$('postSubmitBtn'); btn.disabled=true; btn.textContent='投稿中...';
+  try {
+    await db.collection('posts').add({
+      cat:selCat, title, body, pinned:pin,
+      files:[...fileEntries], backNumbers:[...bnEntries],
+      readBy:[], createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert('投稿しました！');
+    document.querySelector('[data-tab="posts"]').click();
+  } catch(e) {
+    btn.disabled=false; btn.textContent='投稿する';
+    showErr('postErr','投稿に失敗しました: '+e.message);
+  }
+}
+
+/* ─── user approval ─── */
+let ufCurrent='all';
+function setUF(btn) {
+  ufCurrent=btn.dataset.uf;
+  document.querySelectorAll('.uf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadUserList();
+}
+
+async function loadUserList() {
+  $('userList').innerHTML='<div class="loading-msg">読み込み中...</div>';
+  try {
+    const snap=await db.collection('users').get();
+    let users=snap.docs.map(d=>({uid:d.id,...d.data()}));
+    if (ufCurrent!=='all') users=users.filter(u=>u.status===ufCurrent);
+    users.sort((a,b)=>a.status==='pending'?-1:b.status==='pending'?1:0);
+    if (!users.length){$('userList').innerHTML='<div class="empty-state">該当するユーザーはいません</div>';return;}
+    $('userList').innerHTML=users.map(u=>`
+      <div class="user-card${u.status==='pending'?' pending':''}">
+        <div class="user-info">
+          <div class="user-avatar" style="background:${avColor(u.name)}">${u.name.charAt(0)}</div>
+          <div><div class="user-name">${esc(u.name)}</div><div class="user-detail">${esc(u.dept)} ・ ${esc(u.email||'')}</div></div>
+          <div class="user-status-badge ${u.status==='approved'?'st-approved':u.status==='pending'?'st-pending':'st-rejected'}">
+            ${u.status==='approved'?'承認済み':u.status==='pending'?'承認待ち':'否認'}
+          </div>
+        </div>
+        <div class="user-actions">
+          ${u.status==='pending'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認する</button><button class="btn-reject" onclick="setUserStatus('${u.uid}','rejected')">✗ 否認する</button>`:''}
+          ${u.status==='approved'?`<button class="btn-revoke" onclick="setUserStatus('${u.uid}','rejected')">アクセス取り消し</button>`:''}
+          ${u.status==='rejected'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認に変更</button>`:''}
+        </div>
+      </div>`).join('');
+    updateBadges();
+  } catch(e) { $('userList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
+}
+
+async function setUserStatus(uid, status) {
+  await db.collection('users').doc(uid).update({status});
+  loadUserList();
+}
+
+/* ─── DM ─── */
+function goToDM(postId) {
+  activeDmPost=postId; activeDmUserId=null;
+  document.querySelector('[data-tab="dms"]').click();
+}
+
+async function loadDMPanel() {
+  const panel=$('dmPanel');
+  panel.innerHTML='<div class="loading-msg">読み込み中...</div>';
+  try {
+    const pSnap=await db.collection('posts').orderBy('createdAt','desc').get();
+    const posts=pSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const tSnap=await db.collection('threads').get();
+    const threadsByPost={};
+    tSnap.docs.forEach(d=>{
+      const data=d.data();
+      if(!threadsByPost[data.postId])threadsByPost[data.postId]=[];
+      threadsByPost[data.postId].push({tid:d.id,...data});
+    });
+    const postsWithDMs=posts.filter(p=>threadsByPost[p.id]&&threadsByPost[p.id].length>0);
+    if (!postsWithDMs.length){panel.innerHTML='<div class="empty-state">問い合わせはまだありません</div>';return;}
+
+    if (!activeDmPost && postsWithDMs.length>0) activeDmPost=postsWithDMs[0].id;
+
+    const activePost=postsWithDMs.find(p=>p.id===activeDmPost)||postsWithDMs[0];
+    const activeThreads=threadsByPost[activePost.id]||[];
+    if (!activeDmUserId && activeThreads.length>0) activeDmUserId=activeThreads[0].userId;
+
+    panel.innerHTML=`
+      <div class="dm-post-list">
+        ${postsWithDMs.map(p=>`
+          <div class="dm-post-item${p.id===activeDmPost?' active':''}" onclick="activeDmPost='${p.id}';activeDmUserId=null;loadDMPanel()">
+            <div>
+              <div class="dm-pname">${esc(p.title)}</div>
+              <div class="dm-sub">${TLBL[p.cat]} ・ ${(threadsByPost[p.id]||[]).length}件</div>
+            </div>
+            <span class="tab-badge">${(threadsByPost[p.id]||[]).length}</span>
+          </div>`).join('')}
+      </div>
+      <div class="dm-win">
+        <div class="dm-win-head" style="font-size:13px;font-weight:700;">${esc(activePost.title)}</div>
+        <div class="dm-user-tabs">
+          ${activeThreads.map(t=>`
+            <button class="dm-utab${t.userId===activeDmUserId?' active':''}" onclick="activeDmUserId='${t.userId}';loadDMPanel()">
+              ${esc(t.userName||'不明')}
+            </button>`).join('')}
+        </div>
+        <div id="dmThreadView"></div>
+        <div class="dm-reply-row">
+          <textarea class="dm-reply-input" id="dmReplyInput" rows="1" placeholder="返信を入力…" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+          <button class="dm-reply-btn" id="dmReplyBtn" onclick="sendAdminDM('${activePost.id}')">➤</button>
+        </div>
+      </div>`;
+
+    // render thread for active user
+    if (activeDmUserId) {
+      const thread=activeThreads.find(t=>t.userId===activeDmUserId);
+      const msgs=thread?(thread.messages||[]):[];
+      $('dmThreadView').innerHTML=`<div class="dm-thread">
+        ${!msgs.length?`<div style="text-align:center;font-size:12px;color:var(--text3);">メッセージはありません</div>`:''}
+        ${msgs.map(m=>`
+          <div class="dm-bbl ${m.from==='user'?'user':'admin'}">
+            ${m.from==='user'?`<div class="dm-bbl-who">${esc(thread.userName||'')}</div>`:''}
+            <div class="dm-bbl-text">${esc(m.text)}</div>
+            <div class="dm-bbl-time">${m.time||''}</div>
+          </div>`).join('')}
+      </div>`;
+    }
+  } catch(e) { panel.innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
+}
+
+async function sendAdminDM(postId) {
+  if (!activeDmUserId) return alert('返信先のユーザーを選択してください');
+  const input=$('dmReplyInput'), text=input.value.trim();
+  if (!text) return;
+  const btn=$('dmReplyBtn'); btn.disabled=true;
+  const threadId=`${activeDmUserId}_${postId}`;
+  const msg={from:'admin',text,time:nowStr()};
+  try {
+    await db.collection('threads').doc(threadId).update({
+      messages: firebase.firestore.FieldValue.arrayUnion(msg),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    input.value=''; input.style.height='';
+    await loadDMPanel();
+  } catch(e) { alert('送信に失敗しました: '+e.message); }
+  btn.disabled=false;
+}
+</script>
+</body>
+</html>

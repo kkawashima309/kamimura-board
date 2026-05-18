@@ -440,21 +440,21 @@ async function openDetail(postId) {
     </div>
     <div class="sheet-body">${escHtml(p.body||'')}</div>
     ${(p.files||[]).map(f=>`
-      <a class="file-card" href="${escHtml(f.url||'#')}" target="_blank" rel="noopener">
+      <div class="file-card" onclick="openFile('${escHtml(f.url||'#')}')">
         <div class="file-icon">${FILE_ICON(f.name)}</div>
         <div class="file-info"><div class="file-name">${escHtml(f.name)}</div><div class="file-size">${escHtml(f.size||'')}</div></div>
-        <div class="file-dl">開く ↗</div>
-      </a>`).join('')}
+        <div class="file-dl">開く</div>
+      </div>`).join('')}
     ${hasBN?`
       <div class="bn-toggle" onclick="toggleBN(this)">📚 バックナンバー（${p.backNumbers.length}件）<span>▼</span></div>
       <div class="bn-list" id="bnList">
         ${p.backNumbers.map(bn=>`
-          <a class="bn-item" href="${escHtml(bn.url||'#')}" target="_blank" rel="noopener">
+          <div class="bn-item" onclick="openFile('${escHtml(bn.url||'#')}')">
             <span style="font-size:16px">📄</span>
             <span class="bn-label">${escHtml(bn.label)}</span>
             <span class="bn-date">${bn.date||''}</span>
-            <span style="font-size:11px;color:var(--accent);font-weight:600;margin-left:6px;">↗</span>
-          </a>`).join('')}
+            <span style="font-size:11px;color:var(--accent);font-weight:600;margin-left:6px;">開く</span>
+          </div>`).join('')}
       </div>`:''}
     <div style="height:20px;"></div>`;
   $('detailOverlay').classList.add('open');
@@ -526,6 +526,11 @@ async function sendDM(postId) {
 
 /* ─── overlay ─── */
 function closeOverlay(id) { $(id).classList.remove('open'); }
+function openFile(url) {
+  if (!url || url === '#') { alert('ファイルのURLが設定されていません'); return; }
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 $('detailOverlay').addEventListener('click', e => { if(e.target.id==='detailOverlay') closeOverlay('detailOverlay'); });
 $('dmOverlay').addEventListener('click',     e => { if(e.target.id==='dmOverlay')     closeOverlay('dmOverlay'); });
 </script>

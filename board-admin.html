@@ -281,12 +281,20 @@ async function updateBadges() {
   const uSnap = await db.collection('users').where('status','==','pending').get();
   const ub=$('userBadge'); ub.textContent=uSnap.size; ub.style.display=uSnap.size>0?'inline-block':'none';
 
+  // 未返信（管理者がまだ返信していないスレッド）のみカウント
   const tSnap = await db.collection('threads').get();
-  const db2Count = tSnap.docs.reduce((s,d)=>{
-    const msgs=(d.data().messages||[]).filter(m=>m.from==='user');
-    return s+msgs.length;
-  },0);
-  const db2=$('dmBadge'); db2.textContent=db2Count; db2.style.display=db2Count>0?'inline-block':'none';
+  const unreadCount = tSnap.docs.filter(d=>{
+    const msgs = d.data().messages||[];
+    // メッセージが空またはスレッドが削除済みは除外
+    if (!msgs.length) return false;
+    // ユーザーからのメッセージが1件もない場合は除外
+    const userMsgs = msgs.filter(m=>m.from==='user');
+    if (!userMsgs.length) return false;
+    // 最後のメッセージがユーザーからの場合 = 未返信
+    const lastMsg = msgs[msgs.length-1];
+    return lastMsg.from === 'user';
+  }).length;
+  const db2=$('dmBadge'); db2.textContent=unreadCount; db2.style.display=unreadCount>0?'inline-block':'none';
 }
 
 /* ─── post list ─── */

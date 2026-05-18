@@ -496,10 +496,13 @@ async function loadDMThread(postId) {
       el.innerHTML = `<div style="text-align:center;font-size:12px;color:var(--text3);padding:16px 0;">まだメッセージはありません</div>`;
       return;
     }
-    el.innerHTML = msgs.map(m=>`
+    el.innerHTML = msgs.map((m,i)=>`
       <div class="dm-bubble ${m.from==='user'?'me':'admin'}">
         <div class="dm-btext">${escHtml(m.text)}</div>
-        <div class="dm-time">${m.time||''}</div>
+        <div style="display:flex;align-items:center;justify-content:${m.from==='user'?'flex-end':'flex-start'};gap:6px;">
+          <div class="dm-time">${m.time||''}</div>
+          ${m.from==='user'?`<button onclick="deleteDM('${threadId}','${postId}',${i})" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:2px;">🗑</button>`:''}
+        </div>
       </div>`).join('');
     el.lastElementChild?.scrollIntoView({behavior:'smooth'});
   } catch(e) { console.error(e); }
@@ -526,6 +529,21 @@ async function sendDM(postId) {
 
 /* ─── overlay ─── */
 function closeOverlay(id) { $(id).classList.remove('open'); }
+async function deleteDM(threadId, postId, msgIndex) {
+  if (!confirm('このメッセージを削除しますか？')) return;
+  try {
+    const snap = await db.collection('threads').doc(threadId).get();
+    if (!snap.exists) return;
+    const msgs = snap.data().messages || [];
+    msgs.splice(msgIndex, 1);
+    await db.collection('threads').doc(threadId).update({
+      messages: msgs,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    openDM(postId);
+  } catch(e) { alert('削除に失敗しました'); }
+}
+
 function openFile(url) {
   if (!url || url === '#') { alert('ファイルのURLが設定されていません'); return; }
   window.open(url, '_blank', 'noopener,noreferrer');

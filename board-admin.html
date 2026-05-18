@@ -284,8 +284,11 @@ async function updateBadges() {
   // 未返信（管理者がまだ返信していないスレッド）のみカウント
   const tSnap = await db.collection('threads').get();
   const unreadCount = tSnap.docs.filter(d=>{
-    const msgs = d.data().messages||[];
-    // メッセージが空またはスレッドが削除済みは除外
+    const data = d.data();
+    const msgs = data.messages||[];
+    // 解決済みフラグがあれば除外
+    if (data.resolved) return false;
+    // メッセージが空は除外
     if (!msgs.length) return false;
     // ユーザーからのメッセージが1件もない場合は除外
     const userMsgs = msgs.filter(m=>m.from==='user');
@@ -536,8 +539,11 @@ async function loadDMPanel() {
     // 投稿ごとの未返信件数（最後のメッセージがユーザーからのスレッド数）
     function getUnrepliedCount(postId) {
       return (threadsByPost[postId]||[]).filter(t=>{
+        if (t.resolved) return false;
         const msgs=t.messages||[];
         if (!msgs.length) return false;
+        const userMsgs=msgs.filter(m=>m.from==='user');
+        if (!userMsgs.length) return false;
         return msgs[msgs.length-1].from==='user';
       }).length;
     }
@@ -566,6 +572,9 @@ async function loadDMPanel() {
             </button>`).join('')}
         </div>
         <div id="dmThreadView"></div>
+        <div style="padding:6px 12px;border-top:1px solid var(--border);background:var(--surface2);display:flex;justify-content:flex-end;">
+          <button onclick="resolveThread('${activePost.id}')" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--green);background:var(--green-l);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✓ 解決済みにする</button>
+        </div>
         <div class="dm-reply-row">
           <textarea class="dm-reply-input" id="dmReplyInput" rows="1" placeholder="返信を入力…" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
           <button class="dm-reply-btn" id="dmReplyBtn" onclick="sendAdminDM('${activePost.id}')">➤</button>
@@ -587,6 +596,23 @@ async function loadDMPanel() {
       </div>`;
     }
   } catch(e) { panel.innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
+}
+
+async function resolveThread(postId) {
+  if (!activeDmUserId) return;
+  if (!confirm('このスレッドを解決済みにしますか？\nバッジから除外されます。')) return;
+  const threadId = `${activeDmUserId}_${postId}`;
+  try {
+    // resolvedフラグを立てる（管理者メッセージとして記録）
+    const resolvedMsg = { from:'admin', text:'【解決済み】', time:nowStr(), resolved:true };
+    await db.collection('threads').doc(threadId).update({
+      messages: firebase.firestore.FieldValue.arrayUnion(resolvedMsg),
+      resolved: true,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await loadDMPanel();
+    await updateBadges();
+  } catch(e) { alert('更新に失敗しました: '+e.message); }
 }
 
 async function sendAdminDM(postId) {

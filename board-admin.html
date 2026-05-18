@@ -519,25 +519,43 @@ async function loadDMPanel() {
       if(!threadsByPost[data.postId])threadsByPost[data.postId]=[];
       threadsByPost[data.postId].push({tid:d.id,...data});
     });
-    const postsWithDMs=posts.filter(p=>threadsByPost[p.id]&&threadsByPost[p.id].length>0);
+    // メッセージが1件以上あるスレッドのみ対象
+    const postsWithDMs=posts.filter(p=>{
+      const threads=threadsByPost[p.id]||[];
+      return threads.some(t=>(t.messages||[]).length>0);
+    });
     if (!postsWithDMs.length){panel.innerHTML='<div class="empty-state">問い合わせはまだありません</div>';return;}
 
     if (!activeDmPost && postsWithDMs.length>0) activeDmPost=postsWithDMs[0].id;
+    if (activeDmPost && !postsWithDMs.find(p=>p.id===activeDmPost)) activeDmPost=postsWithDMs[0].id;
 
     const activePost=postsWithDMs.find(p=>p.id===activeDmPost)||postsWithDMs[0];
-    const activeThreads=threadsByPost[activePost.id]||[];
+    const activeThreads=(threadsByPost[activePost.id]||[]).filter(t=>(t.messages||[]).length>0);
     if (!activeDmUserId && activeThreads.length>0) activeDmUserId=activeThreads[0].userId;
+
+    // 投稿ごとの未返信件数（最後のメッセージがユーザーからのスレッド数）
+    function getUnrepliedCount(postId) {
+      return (threadsByPost[postId]||[]).filter(t=>{
+        const msgs=t.messages||[];
+        if (!msgs.length) return false;
+        return msgs[msgs.length-1].from==='user';
+      }).length;
+    }
 
     panel.innerHTML=`
       <div class="dm-post-list">
-        ${postsWithDMs.map(p=>`
+        ${postsWithDMs.map(p=>{
+          const unreplied=getUnrepliedCount(p.id);
+          const total=(threadsByPost[p.id]||[]).filter(t=>(t.messages||[]).length>0).length;
+          return `
           <div class="dm-post-item${p.id===activeDmPost?' active':''}" onclick="activeDmPost='${p.id}';activeDmUserId=null;loadDMPanel()">
             <div>
               <div class="dm-pname">${esc(p.title)}</div>
-              <div class="dm-sub">${TLBL[p.cat]} ・ ${(threadsByPost[p.id]||[]).length}件</div>
+              <div class="dm-sub">${TLBL[p.cat]} ・ ${total}件</div>
             </div>
-            <span class="tab-badge">${(threadsByPost[p.id]||[]).length}</span>
-          </div>`).join('')}
+            ${unreplied>0?`<span class="tab-badge">${unreplied}</span>`:''}
+          </div>`;
+        }).join('')}
       </div>
       <div class="dm-win">
         <div class="dm-win-head" style="font-size:13px;font-weight:700;">${esc(activePost.title)}</div>

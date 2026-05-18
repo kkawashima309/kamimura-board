@@ -281,11 +281,17 @@ async function updateBadges() {
   const uSnap = await db.collection('users').where('status','==','pending').get();
   const ub=$('userBadge'); ub.textContent=uSnap.size; ub.style.display=uSnap.size>0?'inline-block':'none';
 
-  // 未返信（管理者がまだ返信していないスレッド）のみカウント
-  const tSnap = await db.collection('threads').get();
+  // 未返信カウント（存在する投稿に紐づくスレッドのみ）
+  const [tSnap, pSnap] = await Promise.all([
+    db.collection('threads').get(),
+    db.collection('posts').get()
+  ]);
+  const existingPostIds = new Set(pSnap.docs.map(d=>d.id));
   const unreadCount = tSnap.docs.filter(d=>{
     const data = d.data();
     const msgs = data.messages||[];
+    // 対応する投稿が存在しない場合は除外
+    if (!existingPostIds.has(data.postId)) return false;
     // 解決済みフラグがあれば除外
     if (data.resolved) return false;
     // メッセージが空は除外
@@ -516,6 +522,7 @@ async function loadDMPanel() {
     const pSnap=await db.collection('posts').orderBy('createdAt','desc').get();
     const posts=pSnap.docs.map(d=>({id:d.id,...d.data()}));
     const tSnap=await db.collection('threads').get();
+    const existingPostIds=new Set(pSnap.docs.map(d=>d.id));
     const threadsByPost={};
     tSnap.docs.forEach(d=>{
       const data=d.data();
@@ -546,6 +553,15 @@ async function loadDMPanel() {
         if (!userMsgs.length) return false;
         return msgs[msgs.length-1].from==='user';
       }).length;
+    }
+
+    // 孤立スレッド（投稿が削除済み）を自動クリーン
+    const orphanThreads = tSnap.docs.filter(d=>!existingPostIds.has(d.data().postId));
+    if (orphanThreads.length > 0) {
+      const batch = db.batch();
+      orphanThreads.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      await updateBadges();
     }
 
     panel.innerHTML=`

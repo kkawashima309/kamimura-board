@@ -270,6 +270,10 @@ function switchTab(btn) {
   ['tabPosts','tabNew','tabUsers','tabDms'].forEach(t=>$(t).style.display='none');
   const map={posts:'tabPosts',new:'tabNew',users:'tabUsers',dms:'tabDms'};
   $(map[btn.dataset.tab]).style.display='';
+  // 投稿一覧以外のタブに切り替えたらリスナーを解除
+  if (btn.dataset.tab !== 'posts' && _postListenerUnsubscribe) {
+    _postListenerUnsubscribe(); _postListenerUnsubscribe = null;
+  }
   if (btn.dataset.tab==='posts')  loadPostList();
   if (btn.dataset.tab==='new')    renderNewPostForm();
   if (btn.dataset.tab==='users')  loadUserList();
@@ -307,347 +311,60 @@ async function updateBadges() {
 }
 
 /* ─── post list ─── */
+let _postListenerUnsubscribe = null;
+
 async function loadPostList() {
   $('postList').innerHTML='<div class="loading-msg">読み込み中...</div>';
+  if (_postListenerUnsubscribe) { _postListenerUnsubscribe(); _postListenerUnsubscribe = null; }
   try {
-    const [postSnap, userSnap] = await Promise.all([
-      db.collection('posts').orderBy('createdAt','desc').get(),
-      db.collection('users').where('status','==','approved').get()
-    ]);
-    let posts = postSnap.docs.map(d=>({id:d.id,...d.data()}));
-    posts.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+    const userSnap = await db.collection('users').where('status','==','approved').get();
     const approvedUsers = userSnap.docs.map(d=>({uid:d.id,...d.data()}));
     const totalUsers = approvedUsers.length;
-    if (!posts.length){$('postList').innerHTML='<div class="empty-state">投稿がありません</div>';return;}
-    $('postList').innerHTML=posts.map(p=>{
-      const readBy = p.readBy||[];
-      const readCount = readBy.length;
-      const unreadUsers = approvedUsers.filter(u=>!readBy.includes(u.uid));
-      const readPct = totalUsers>0 ? Math.round(readCount/totalUsers*100) : 0;
-      return `
-      <div class="acard">
-        <div class="acard-top">
-          <span class="atag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
-          ${p.pinned?`<span style="font-size:12px">📌</span>`:''}
-          <span style="font-size:11px;color:var(--text3);margin-left:auto;">${fmtTs(p.createdAt)}</span>
-        </div>
-        <div class="acard-title">${esc(p.title)}</div>
-        <div class="acard-body">${esc((p.body||'').replace(/\n/g,' '))}</div>
-        <div class="acard-meta">${(p.files||[]).length?`📎 ${p.files.map(f=>esc(f.name)).join('・')}&emsp;`:''}${(p.backNumbers||[]).length?`📚 バックナンバー${p.backNumbers.length}件`:''}</div>
-        <div style="padding:8px 14px;border-top:1px solid var(--border);">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-            <span style="font-size:11px;font-weight:700;color:var(--text2);">既読状況</span>
-            <span style="font-size:11px;color:var(--text2);">${readCount}／${totalUsers}人（${readPct}%）</span>
-          </div>
-          <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
-            <div style="background:var(--green);height:100%;width:${readPct}%;border-radius:4px;"></div>
-          </div>
-          ${unreadUsers.length>0?`
-          <div style="margin-top:6px;">
-            <span style="font-size:10px;color:var(--text3);">未読：</span>
-            ${unreadUsers.map(u=>`<span style="font-size:10px;background:var(--red-l);color:var(--red);padding:1px 6px;border-radius:10px;margin:2px 2px 0;display:inline-block;">${esc(u.name)}</span>`).join('')}
-          </div>`:'<div style="margin-top:4px;font-size:10px;color:var(--green);">✓ 全員既読</div>'}
-        </div>
-        <div class="acard-foot">
-          <button class="btn-del" onclick="deletePost('${p.id}')">削除</button>
-          <button class="btn-dm"  onclick="goToDM('${p.id}')">問い合わせを見る</button>
-        </div>
-      </div>`;
-    }).join('');
+
+    _postListenerUnsubscribe = db.collection('posts').orderBy('createdAt','desc')
+      .onSnapshot(postSnap => {
+        let posts = postSnap.docs.map(d=>({id:d.id,...d.data()}));
+        posts.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+        if (!posts.length){$('postList').innerHTML='<div class="empty-state">投稿がありません</div>';return;}
+        $('postList').innerHTML=posts.map(p=>{
+          const readBy = p.readBy||[];
+          const readCount = readBy.length;
+          const unreadUsers = approvedUsers.filter(u=>!readBy.includes(u.uid));
+          const readPct = totalUsers>0 ? Math.round(readCount/totalUsers*100) : 0;
+          return `
+          <div class="acard">
+            <div class="acard-top">
+              <span class="atag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
+              ${p.pinned?`<span style="font-size:12px">📌</span>`:''}
+              <span style="font-size:11px;color:var(--text3);margin-left:auto;">${fmtTs(p.createdAt)}</span>
+            </div>
+            <div class="acard-title">${esc(p.title)}</div>
+            <div class="acard-body">${esc((p.body||'').replace(/\n/g,' '))}</div>
+            <div class="acard-meta">${(p.files||[]).length?`📎 ${p.files.map(f=>esc(f.name)).join('・')}&emsp;`:''}${(p.backNumbers||[]).length?`📚 バックナンバー${p.backNumbers.length}件`:''}</div>
+            <div style="padding:8px 14px;border-top:1px solid var(--border);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:11px;font-weight:700;color:var(--text2);">既読状況</span>
+                <span style="font-size:11px;color:var(--text2);">${readCount}／${totalUsers}人（${readPct}%）</span>
+              </div>
+              <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+                <div style="background:var(--green);height:100%;width:${readPct}%;border-radius:4px;"></div>
+              </div>
+              ${unreadUsers.length>0?`
+              <div style="margin-top:6px;">
+                <span style="font-size:10px;color:var(--text3);">未読：</span>
+                ${unreadUsers.map(u=>`<span style="font-size:10px;background:var(--red-l);color:var(--red);padding:1px 6px;border-radius:10px;margin:2px 2px 0;display:inline-block;">${esc(u.name)}</span>`).join('')}
+              </div>`:'<div style="margin-top:4px;font-size:10px;color:var(--green);">✓ 全員既読</div>'}
+            </div>
+            <div class="acard-foot">
+              <button class="btn-del" onclick="deletePost('${p.id}')">削除</button>
+              <button class="btn-dm"  onclick="goToDM('${p.id}')">問い合わせを見る</button>
+            </div>
+          </div>`;
+        }).join('');
+      }, err => {
+        $('postList').innerHTML=`<div class="empty-state">読み込みエラー: ${err.message}</div>`;
+      });
   } catch(e) { $('postList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
 }
 
-async function deletePost(id) {
-  if (!confirm('この投稿を削除しますか？')) return;
-  await db.collection('posts').doc(id).delete();
-  loadPostList();
-}
 
-/* ─── new post form ─── */
-function renderNewPostForm() {
-  fileEntries=[]; bnEntries=[]; selCat='notice';
-  $('newPostForm').innerHTML=`
-    <div class="form-title">新規投稿</div>
-    <div class="form-row">
-      <span class="form-row-label">カテゴリ</span>
-      <div class="cat-row" id="catRow">
-        <button class="csel sel-notice" data-cat="notice" onclick="selectCat(this)">お知らせ</button>
-        <button class="csel" data-cat="report" onclick="selectCat(this)">社内報</button>
-        <button class="csel" data-cat="event"  onclick="selectCat(this)">行事・イベント</button>
-        <button class="csel" data-cat="biz"    onclick="selectCat(this)">業務連絡</button>
-      </div>
-    </div>
-    <div class="form-row">
-      <span class="form-row-label">タイトル</span>
-      <input class="form-input" id="fTitle" type="text" placeholder="タイトルを入力">
-    </div>
-    <div class="form-row">
-      <span class="form-row-label">本文</span>
-      <textarea class="form-textarea" id="fBody" placeholder="本文を入力（改行そのまま反映）"></textarea>
-    </div>
-    <div class="form-row" style="margin-top:14px;">
-      <span class="form-row-label">ファイルリンク（OneDrive・Google Driveの共有リンク）</span>
-      <input class="form-input" id="fFileName" type="text" placeholder="ファイル名 例：神村だより_2026年5月号.pdf">
-      <input class="form-input" id="fFileUrl"  type="url"  placeholder="共有リンク https://...">
-      <input class="form-input" id="fFileSize" type="text" placeholder="サイズ 例：2.4 MB（任意）">
-      <button onclick="addFile()" style="padding:7px 16px;border:1.5px solid var(--accent);border-radius:20px;background:var(--accent-l);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">+ ファイル追加</button>
-      <div class="file-rows" id="fileRows"></div>
-    </div>
-    <div class="form-row">
-      <span class="form-row-label">バックナンバー（社内報などの過去号）</span>
-      <input class="form-input" id="fBnLabel" type="text" placeholder="例：2026年4月号">
-      <input class="form-input" id="fBnDate"  type="text" placeholder="例：2026/04/01">
-      <input class="form-input" id="fBnUrl"   type="url"  placeholder="共有リンク https://...">
-      <button onclick="addBN()" style="padding:7px 16px;border:1.5px solid var(--purple);border-radius:20px;background:var(--purple-l);color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">+ バックナンバー追加</button>
-      <div class="file-rows" id="bnRows"></div>
-    </div>
-    <div class="form-row">
-      <div class="pin-row"><input type="checkbox" id="fPin"><label for="fPin">📌 ピン留め（重要・常時上部に表示）</label></div>
-    </div>
-    <div class="err-msg" id="postErr"></div>
-    <button class="primary-btn" id="postSubmitBtn" onclick="submitPost()" style="margin-top:16px;">投稿する</button>
-  `;
-}
-
-function selectCat(btn) {
-  selCat=btn.dataset.cat;
-  document.querySelectorAll('#catRow .csel').forEach(b=>{b.className='csel';});
-  btn.classList.add(`sel-${selCat}`);
-}
-
-function addFile() {
-  const name=v('fFileName'), url=v('fFileUrl'), size=v('fFileSize');
-  if (!name||!url) return alert('ファイル名とリンクを入力してください');
-  fileEntries.push({name,url,size});
-  $('fFileName').value=$('fFileUrl').value=$('fFileSize').value='';
-  renderFileRows();
-}
-function renderFileRows() {
-  $('fileRows').innerHTML=fileEntries.map((f,i)=>`
-    <div class="file-row">
-      <span style="font-size:16px;">📄</span>
-      <span class="file-row-name">${esc(f.name)}</span>
-      <span class="file-row-size">${esc(f.size)}</span>
-      <button class="file-rm" onclick="fileEntries.splice(${i},1);renderFileRows()">✕</button>
-    </div>`).join('');
-}
-
-function addBN() {
-  const label=v('fBnLabel'), date=v('fBnDate'), url=v('fBnUrl');
-  if (!label) return alert('ラベルを入力してください');
-  bnEntries.push({label,date,url});
-  $('fBnLabel').value=$('fBnDate').value=$('fBnUrl').value='';
-  renderBNRows();
-}
-function renderBNRows() {
-  $('bnRows').innerHTML=bnEntries.map((b,i)=>`
-    <div class="file-row">
-      <span style="font-size:16px;">📚</span>
-      <span class="file-row-name">${esc(b.label)}</span>
-      <span class="file-row-size">${esc(b.date)}</span>
-      <button class="file-rm" onclick="bnEntries.splice(${i},1);renderBNRows()">✕</button>
-    </div>`).join('');
-}
-
-async function submitPost() {
-  hideErr('postErr');
-  const title=v('fTitle'), body=v('fBody'), pin=$('fPin').checked;
-  if (!title||!body) return showErr('postErr','タイトルと本文を入力してください');
-  const btn=$('postSubmitBtn'); btn.disabled=true; btn.textContent='投稿中...';
-  try {
-    await db.collection('posts').add({
-      cat:selCat, title, body, pinned:pin,
-      files:[...fileEntries], backNumbers:[...bnEntries],
-      readBy:[], createdAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    alert('投稿しました！');
-    document.querySelector('[data-tab="posts"]').click();
-  } catch(e) {
-    btn.disabled=false; btn.textContent='投稿する';
-    showErr('postErr','投稿に失敗しました: '+e.message);
-  }
-}
-
-/* ─── user approval ─── */
-let ufCurrent='all';
-function setUF(btn) {
-  ufCurrent=btn.dataset.uf;
-  document.querySelectorAll('.uf-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  loadUserList();
-}
-
-async function loadUserList() {
-  $('userList').innerHTML='<div class="loading-msg">読み込み中...</div>';
-  try {
-    const snap=await db.collection('users').get();
-    let users=snap.docs.map(d=>({uid:d.id,...d.data()}));
-    if (ufCurrent!=='all') users=users.filter(u=>u.status===ufCurrent);
-    users.sort((a,b)=>a.status==='pending'?-1:b.status==='pending'?1:0);
-    if (!users.length){$('userList').innerHTML='<div class="empty-state">該当するユーザーはいません</div>';return;}
-    $('userList').innerHTML=users.map(u=>`
-      <div class="user-card${u.status==='pending'?' pending':''}">
-        <div class="user-info">
-          <div class="user-avatar" style="background:${avColor(u.name)}">${u.name.charAt(0)}</div>
-          <div><div class="user-name">${esc(u.name)}</div><div class="user-detail">${esc(u.dept)} ・ ${esc(u.email||'')}</div></div>
-          <div class="user-status-badge ${u.status==='approved'?'st-approved':u.status==='pending'?'st-pending':'st-rejected'}">
-            ${u.status==='approved'?'承認済み':u.status==='pending'?'承認待ち':'否認'}
-          </div>
-        </div>
-        <div class="user-actions">
-          ${u.status==='pending'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認する</button><button class="btn-reject" onclick="setUserStatus('${u.uid}','rejected')">✗ 否認する</button>`:''}
-          ${u.status==='approved'?`<button class="btn-revoke" onclick="setUserStatus('${u.uid}','rejected')">アクセス取り消し</button>`:''}
-          ${u.status==='rejected'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認に変更</button>`:''}
-        </div>
-      </div>`).join('');
-    updateBadges();
-  } catch(e) { $('userList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
-}
-
-async function setUserStatus(uid, status) {
-  await db.collection('users').doc(uid).update({status});
-  loadUserList();
-}
-
-/* ─── DM ─── */
-function goToDM(postId) {
-  activeDmPost=postId; activeDmUserId=null;
-  document.querySelector('[data-tab="dms"]').click();
-}
-
-async function loadDMPanel() {
-  const panel=$('dmPanel');
-  panel.innerHTML='<div class="loading-msg">読み込み中...</div>';
-  try {
-    const pSnap=await db.collection('posts').orderBy('createdAt','desc').get();
-    const posts=pSnap.docs.map(d=>({id:d.id,...d.data()}));
-    const tSnap=await db.collection('threads').get();
-    const existingPostIds=new Set(pSnap.docs.map(d=>d.id));
-    const threadsByPost={};
-    tSnap.docs.forEach(d=>{
-      const data=d.data();
-      if(!threadsByPost[data.postId])threadsByPost[data.postId]=[];
-      threadsByPost[data.postId].push({tid:d.id,...data});
-    });
-    // メッセージが1件以上あるスレッドのみ対象
-    const postsWithDMs=posts.filter(p=>{
-      const threads=threadsByPost[p.id]||[];
-      return threads.some(t=>(t.messages||[]).length>0);
-    });
-    if (!postsWithDMs.length){panel.innerHTML='<div class="empty-state">問い合わせはまだありません</div>';return;}
-
-    if (!activeDmPost && postsWithDMs.length>0) activeDmPost=postsWithDMs[0].id;
-    if (activeDmPost && !postsWithDMs.find(p=>p.id===activeDmPost)) activeDmPost=postsWithDMs[0].id;
-
-    const activePost=postsWithDMs.find(p=>p.id===activeDmPost)||postsWithDMs[0];
-    const activeThreads=(threadsByPost[activePost.id]||[]).filter(t=>(t.messages||[]).length>0);
-    if (!activeDmUserId && activeThreads.length>0) activeDmUserId=activeThreads[0].userId;
-
-    // 投稿ごとの未返信件数（最後のメッセージがユーザーからのスレッド数）
-    function getUnrepliedCount(postId) {
-      return (threadsByPost[postId]||[]).filter(t=>{
-        if (t.resolved) return false;
-        const msgs=t.messages||[];
-        if (!msgs.length) return false;
-        const userMsgs=msgs.filter(m=>m.from==='user');
-        if (!userMsgs.length) return false;
-        return msgs[msgs.length-1].from==='user';
-      }).length;
-    }
-
-    // 孤立スレッド（投稿が削除済み）を自動クリーン
-    const orphanThreads = tSnap.docs.filter(d=>!existingPostIds.has(d.data().postId));
-    if (orphanThreads.length > 0) {
-      const batch = db.batch();
-      orphanThreads.forEach(d => batch.delete(d.ref));
-      await batch.commit();
-      await updateBadges();
-    }
-
-    panel.innerHTML=`
-      <div class="dm-post-list">
-        ${postsWithDMs.map(p=>{
-          const unreplied=getUnrepliedCount(p.id);
-          const total=(threadsByPost[p.id]||[]).filter(t=>(t.messages||[]).length>0).length;
-          return `
-          <div class="dm-post-item${p.id===activeDmPost?' active':''}" onclick="activeDmPost='${p.id}';activeDmUserId=null;loadDMPanel()">
-            <div>
-              <div class="dm-pname">${esc(p.title)}</div>
-              <div class="dm-sub">${TLBL[p.cat]} ・ ${total}件</div>
-            </div>
-            ${unreplied>0?`<span class="tab-badge">${unreplied}</span>`:''}
-          </div>`;
-        }).join('')}
-      </div>
-      <div class="dm-win">
-        <div class="dm-win-head" style="font-size:13px;font-weight:700;">${esc(activePost.title)}</div>
-        <div class="dm-user-tabs">
-          ${activeThreads.map(t=>`
-            <button class="dm-utab${t.userId===activeDmUserId?' active':''}" onclick="activeDmUserId='${t.userId}';loadDMPanel()">
-              ${esc(t.userName||'不明')}
-            </button>`).join('')}
-        </div>
-        <div id="dmThreadView"></div>
-        <div style="padding:6px 12px;border-top:1px solid var(--border);background:var(--surface2);display:flex;justify-content:flex-end;">
-          <button onclick="resolveThread('${activePost.id}')" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--green);background:var(--green-l);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✓ 解決済みにする</button>
-        </div>
-        <div class="dm-reply-row">
-          <textarea class="dm-reply-input" id="dmReplyInput" rows="1" placeholder="返信を入力…" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
-          <button class="dm-reply-btn" id="dmReplyBtn" onclick="sendAdminDM('${activePost.id}')">➤</button>
-        </div>
-      </div>`;
-
-    // render thread for active user
-    if (activeDmUserId) {
-      const thread=activeThreads.find(t=>t.userId===activeDmUserId);
-      const msgs=thread?(thread.messages||[]):[];
-      $('dmThreadView').innerHTML=`<div class="dm-thread">
-        ${!msgs.length?`<div style="text-align:center;font-size:12px;color:var(--text3);">メッセージはありません</div>`:''}
-        ${msgs.map(m=>`
-          <div class="dm-bbl ${m.from==='user'?'user':'admin'}">
-            ${m.from==='user'?`<div class="dm-bbl-who">${esc(thread.userName||'')}</div>`:''}
-            <div class="dm-bbl-text">${esc(m.text)}</div>
-            <div class="dm-bbl-time">${m.time||''}</div>
-          </div>`).join('')}
-      </div>`;
-    }
-  } catch(e) { panel.innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
-}
-
-async function resolveThread(postId) {
-  if (!activeDmUserId) return;
-  if (!confirm('このスレッドを解決済みにしますか？\nバッジから除外されます。')) return;
-  const threadId = `${activeDmUserId}_${postId}`;
-  try {
-    // resolvedフラグを立てる（管理者メッセージとして記録）
-    const resolvedMsg = { from:'admin', text:'【解決済み】', time:nowStr(), resolved:true };
-    await db.collection('threads').doc(threadId).update({
-      messages: firebase.firestore.FieldValue.arrayUnion(resolvedMsg),
-      resolved: true,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    await loadDMPanel();
-    await updateBadges();
-  } catch(e) { alert('更新に失敗しました: '+e.message); }
-}
-
-async function sendAdminDM(postId) {
-  if (!activeDmUserId) return alert('返信先のユーザーを選択してください');
-  const input=$('dmReplyInput'), text=input.value.trim();
-  if (!text) return;
-  const btn=$('dmReplyBtn'); btn.disabled=true;
-  const threadId=`${activeDmUserId}_${postId}`;
-  const msg={from:'admin',text,time:nowStr()};
-  try {
-    await db.collection('threads').doc(threadId).update({
-      messages: firebase.firestore.FieldValue.arrayUnion(msg),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    input.value=''; input.style.height='';
-    await loadDMPanel();
-  } catch(e) { alert('送信に失敗しました: '+e.message); }
-  btn.disabled=false;
-}
-</script>
-</body>
-</html>

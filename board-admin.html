@@ -366,6 +366,153 @@ async function loadPostList() {
       });
   } catch(e) { $('postList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
 }
+
+/* ─── new post ─── */
+function renderNewPostForm() {
+  fileEntries=[]; bnEntries=[]; selCat='notice';
+  $('newPostForm').innerHTML=`
+    <div class="form-title">新規投稿</div>
+    <div class="form-row">
+      <span class="form-row-label">カテゴリ</span>
+      <div class="cat-row" id="catRow">
+        <button class="csel sel-notice" data-cat="notice" onclick="selectCat(this)">お知らせ</button>
+        <button class="csel" data-cat="report" onclick="selectCat(this)">社内報</button>
+        <button class="csel" data-cat="event"  onclick="selectCat(this)">行事・イベント</button>
+        <button class="csel" data-cat="biz"    onclick="selectCat(this)">業務連絡</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <span class="form-row-label">タイトル</span>
+      <input class="form-input" id="fTitle" type="text" placeholder="タイトルを入力">
+    </div>
+    <div class="form-row">
+      <span class="form-row-label">本文</span>
+      <textarea class="form-textarea" id="fBody" placeholder="本文を入力（改行そのまま反映）"></textarea>
+    </div>
+    <div class="form-row" style="margin-top:14px;">
+      <span class="form-row-label">ファイルリンク（OneDrive・Google Driveの共有リンク）</span>
+      <input class="form-input" id="fFileName" type="text" placeholder="ファイル名 例：神村だより_2026年5月号.pdf">
+      <input class="form-input" id="fFileUrl"  type="url"  placeholder="共有リンク https://...">
+      <input class="form-input" id="fFileSize" type="text" placeholder="サイズ 例：2.4 MB（任意）">
+      <button onclick="addFile()" style="padding:7px 16px;border:1.5px solid var(--accent);border-radius:20px;background:var(--accent-l);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">+ ファイル追加</button>
+      <div class="file-rows" id="fileRows"></div>
+    </div>
+    <div class="form-row">
+      <span class="form-row-label">バックナンバー（社内報などの過去号）</span>
+      <input class="form-input" id="fBnLabel" type="text" placeholder="例：2026年4月号">
+      <input class="form-input" id="fBnDate"  type="text" placeholder="例：2026/04/01">
+      <input class="form-input" id="fBnUrl"   type="url"  placeholder="共有リンク https://...">
+      <button onclick="addBN()" style="padding:7px 16px;border:1.5px solid var(--purple);border-radius:20px;background:var(--purple-l);color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">+ バックナンバー追加</button>
+      <div class="file-rows" id="bnRows"></div>
+    </div>
+    <div class="form-row">
+      <div class="pin-row"><input type="checkbox" id="fPin"><label for="fPin">📌 ピン留め（重要・常時上部に表示）</label></div>
+    </div>
+    <div class="err-msg" id="postErr"></div>
+    <button class="primary-btn" id="postSubmitBtn" onclick="submitPost()" style="margin-top:16px;">投稿する</button>
+  `;
+}
+
+function selectCat(btn) {
+  selCat=btn.dataset.cat;
+  document.querySelectorAll('#catRow .csel').forEach(b=>{b.className='csel';});
+  btn.classList.add(`sel-${selCat}`);
+}
+
+function addFile() {
+  const name=v('fFileName'), url=v('fFileUrl'), size=v('fFileSize');
+  if (!name||!url) return alert('ファイル名とリンクを入力してください');
+  fileEntries.push({name,url,size});
+  $('fFileName').value=$('fFileUrl').value=$('fFileSize').value='';
+  renderFileRows();
+}
+function renderFileRows() {
+  $('fileRows').innerHTML=fileEntries.map((f,i)=>`
+    <div class="file-row">
+      <span style="font-size:16px;">📄</span>
+      <span class="file-row-name">${esc(f.name)}</span>
+      <span class="file-row-size">${esc(f.size)}</span>
+      <button class="file-rm" onclick="fileEntries.splice(${i},1);renderFileRows()">✕</button>
+    </div>`).join('');
+}
+
+function addBN() {
+  const label=v('fBnLabel'), date=v('fBnDate'), url=v('fBnUrl');
+  if (!label) return alert('ラベルを入力してください');
+  bnEntries.push({label,date,url});
+  $('fBnLabel').value=$('fBnDate').value=$('fBnUrl').value='';
+  renderBNRows();
+}
+function renderBNRows() {
+  $('bnRows').innerHTML=bnEntries.map((b,i)=>`
+    <div class="file-row">
+      <span style="font-size:16px;">📚</span>
+      <span class="file-row-name">${esc(b.label)}</span>
+      <span class="file-row-size">${esc(b.date)}</span>
+      <button class="file-rm" onclick="bnEntries.splice(${i},1);renderBNRows()">✕</button>
+    </div>`).join('');
+}
+
+async function submitPost() {
+  hideErr('postErr');
+  const title=v('fTitle'), body=v('fBody'), pin=$('fPin').checked;
+  if (!title||!body) return showErr('postErr','タイトルと本文を入力してください');
+  const btn=$('postSubmitBtn'); btn.disabled=true; btn.textContent='投稿中...';
+  try {
+    await db.collection('posts').add({
+      cat:selCat, title, body, pinned:pin,
+      files:[...fileEntries], backNumbers:[...bnEntries],
+      readBy:[], createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert('投稿しました！');
+    document.querySelector('[data-tab="posts"]').click();
+  } catch(e) {
+    btn.disabled=false; btn.textContent='投稿する';
+    showErr('postErr','投稿に失敗しました: '+e.message);
+  }
+}
+
+/* ─── user approval ─── */
+let ufCurrent='all';
+function setUF(btn) {
+  ufCurrent=btn.dataset.uf;
+  document.querySelectorAll('.uf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadUserList();
+}
+
+async function loadUserList() {
+  $('userList').innerHTML='<div class="loading-msg">読み込み中...</div>';
+  try {
+    const snap=await db.collection('users').get();
+    let users=snap.docs.map(d=>({uid:d.id,...d.data()}));
+    if (ufCurrent!=='all') users=users.filter(u=>u.status===ufCurrent);
+    users.sort((a,b)=>a.status==='pending'?-1:b.status==='pending'?1:0);
+    if (!users.length){$('userList').innerHTML='<div class="empty-state">該当するユーザーはいません</div>';return;}
+    $('userList').innerHTML=users.map(u=>`
+      <div class="user-card${u.status==='pending'?' pending':''}">
+        <div class="user-info">
+          <div class="user-avatar" style="background:${avColor(u.name)}">${u.name.charAt(0)}</div>
+          <div><div class="user-name">${esc(u.name)}</div><div class="user-detail">${esc(u.dept)} ・ ${esc(u.email||'')}</div></div>
+          <div class="user-status-badge ${u.status==='approved'?'st-approved':u.status==='pending'?'st-pending':'st-rejected'}">
+            ${u.status==='approved'?'承認済み':u.status==='pending'?'承認待ち':'否認'}
+          </div>
+        </div>
+        <div class="user-actions">
+          ${u.status==='pending'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認する</button><button class="btn-reject" onclick="setUserStatus('${u.uid}','rejected')">✗ 否認する</button>`:''}
+          ${u.status==='approved'?`<button class="btn-revoke" onclick="setUserStatus('${u.uid}','rejected')">アクセス取り消し</button>`:''}
+          ${u.status==='rejected'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認に変更</button>`:''}
+        </div>
+      </div>`).join('');
+    updateBadges();
+  } catch(e) { $('userList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
+}
+
+async function setUserStatus(uid, status) {
+  await db.collection('users').doc(uid).update({status});
+  loadUserList();
+}
+
 </script>
 </body>
 </html>

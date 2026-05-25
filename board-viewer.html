@@ -53,9 +53,8 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
 .hdr-logout{font-size:11px;opacity:.6;cursor:pointer;text-decoration:underline;}
 .hdr-unread{background:#e55;color:white;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:none;}
 .hdr-unread.show{display:block;}
-.cat-bar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
-.cat-bar::-webkit-scrollbar{display:none;}
-.cat-btn{flex-shrink:0;padding:4px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.cat-bar{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px;}
+.cat-btn{flex-shrink:0;padding:4px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:rgba(255,255,255,.8);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;}
 .cat-btn.active{background:white;color:var(--accent);border-color:white;font-weight:700;}
 
 /* ── list / card ── */

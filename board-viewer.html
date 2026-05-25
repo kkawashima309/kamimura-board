@@ -70,6 +70,8 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
 .tag-report{background:var(--purple-l);color:var(--purple);}
 .tag-event{background:var(--amber-l);color:var(--amber);}
 .tag-biz{background:var(--green-l);color:var(--green);}
+.tag-useful{background:#fde8f5;color:#b5388a;}
+.tag-other{background:#f0f0f0;color:#555555;}
 .pin-mark{font-size:12px;margin-left:auto;}
 .new-dot{width:7px;height:7px;background:var(--red);border-radius:50%;margin-left:auto;flex-shrink:0;}
 .card-body{padding:0 12px 8px;}
@@ -247,9 +249,11 @@ const CATS = [
   {id:'report', label:'社内報'},
   {id:'event',  label:'行事・イベント'},
   {id:'biz',    label:'業務連絡'},
+  {id:'useful', label:'お役立ち情報'},
+  {id:'other',  label:'その他'},
 ];
-const TCLS = {notice:'tag-notice',report:'tag-report',event:'tag-event',biz:'tag-biz'};
-const TLBL = {notice:'お知らせ',report:'社内報',event:'行事・イベント',biz:'業務連絡'};
+const TCLS = {notice:'tag-notice',report:'tag-report',event:'tag-event',biz:'tag-biz',useful:'tag-useful',other:'tag-other'};
+const TLBL = {notice:'お知らせ',report:'社内報',event:'行事・イベント',biz:'業務連絡',useful:'お役立ち情報',other:'その他'};
 const FILE_ICON = n => {const e=n.split('.').pop().toLowerCase();return e==='pdf'?'📄':['ppt','pptx'].includes(e)?'📊':['doc','docx'].includes(e)?'📝':['xls','xlsx'].includes(e)?'📈':'📎';};
 
 /* ─── utils ─── */

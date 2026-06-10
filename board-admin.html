@@ -145,7 +145,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
 .dm-user-tabs::-webkit-scrollbar{display:none;}
 .dm-utab{flex-shrink:0;padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text2);}
 .dm-utab.active{background:var(--accent);border-color:var(--accent);color:white;}
-.dm-thread{padding:12px;display:flex;flex-direction:column;gap:8px;min-height:100px;}
+.dm-thread{padding:12px;display:flex;flex-direction:column;gap:8px;min-height:100px;max-height:320px;overflow-y:auto;}
 .dm-bbl{max-width:78%;}
 .dm-bbl.user{align-self:flex-start;}
 .dm-bbl.admin{align-self:flex-end;}
@@ -615,6 +615,29 @@ function renderSettingsPanel() {
       </div>
 
       <div class="settings-section">
+        <div class="settings-section-title">
+          ✉ メール通知（EmailJS）
+          <span class="settings-status ${localStorage.getItem('emailjs_public_key')?'st-set':'st-unset'}">${localStorage.getItem('emailjs_public_key')?'設定済み':'未設定'}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:12px;">
+          社員申請・問い合わせ受信時に <b>kawashima@kamidk.co.jp</b> へ通知メールを送ります。<br>
+          <a href="https://www.emailjs.com/" target="_blank" rel="noopener" style="color:var(--accent);">emailjs.com</a> で無料アカウントを作成し、以下の3つの値を設定してください。
+        </div>
+        <div class="howto-step"><div class="howto-num">1</div><div class="howto-text">EmailJS にログイン → <b>Email Services</b> でGmailなどを連携 → Service ID をコピー</div></div>
+        <div class="howto-step"><div class="howto-num">2</div><div class="howto-text"><b>Email Templates</b> で新規テンプレートを作成。件名に <code>{{subject}}</code>、本文に <code>{{message}}</code> を入れる → Template ID をコピー</div></div>
+        <div class="howto-step"><div class="howto-num">3</div><div class="howto-text"><b>Account → General → Public Key</b> をコピー</div></div>
+        <label class="form-label" style="margin-top:10px;">Service ID</label>
+        <input class="form-input" id="sEjsService"  type="text" placeholder="service_xxxxxxx" value="${esc(localStorage.getItem('emailjs_service_id')||'')}">
+        <label class="form-label">Template ID</label>
+        <input class="form-input" id="sEjsTemplate" type="text" placeholder="template_xxxxxxx" value="${esc(localStorage.getItem('emailjs_template_id')||'')}">
+        <label class="form-label">Public Key</label>
+        <input class="form-input" id="sEjsKey"      type="text" placeholder="xxxxxxxxxxxxxxxxxxxx" value="${esc(localStorage.getItem('emailjs_public_key')||'')}">
+        <button class="settings-save-btn" onclick="saveEmailJS()">保存する</button>
+        ${localStorage.getItem('emailjs_public_key')?`<button class="settings-clear-btn" onclick="clearEmailJS()">削除</button>`:''}
+        <div id="ejsMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
+      </div>
+
+      <div class="settings-section">
         <div class="settings-section-title">📅 Outlookカレンダー連携</div>
         <div style="font-size:13px;color:var(--text2);line-height:1.75;">
           カテゴリが <b>「行事・イベント」</b> の投稿を作成すると、<br>
@@ -654,6 +677,20 @@ function showTeamsMsg(msg, color) {
   el.style.display = 'block';
 }
 
+function saveEmailJS() {
+  const si = v('sEjsService'), ti = v('sEjsTemplate'), pk = v('sEjsKey');
+  if (si) localStorage.setItem('emailjs_service_id',  si);
+  if (ti) localStorage.setItem('emailjs_template_id', ti);
+  if (pk) localStorage.setItem('emailjs_public_key',  pk);
+  const el = $('ejsMsg');
+  if (el) { el.textContent='保存しました'; el.style.color='var(--green)'; el.style.display='block'; }
+  setTimeout(renderSettingsPanel, 1000);
+}
+function clearEmailJS() {
+  ['emailjs_service_id','emailjs_template_id','emailjs_public_key'].forEach(k=>localStorage.removeItem(k));
+  renderSettingsPanel();
+}
+
 /* ─── user approval ─── */
 let ufCurrent='all';
 function setUF(btn) {
@@ -684,6 +721,7 @@ async function loadUserList() {
           ${u.status==='pending'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認する</button><button class="btn-reject" onclick="setUserStatus('${u.uid}','rejected')">✗ 否認する</button>`:''}
           ${u.status==='approved'?`<button class="btn-revoke" onclick="setUserStatus('${u.uid}','rejected')">アクセス取り消し</button>`:''}
           ${u.status==='rejected'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認に変更</button>`:''}
+          <button class="btn-del" style="margin-left:auto;" onclick="deleteUser('${u.uid}','${esc(u.name)}')">🗑 削除</button>
         </div>
       </div>`).join('');
     updateBadges();
@@ -693,6 +731,179 @@ async function loadUserList() {
 async function setUserStatus(uid, status) {
   await db.collection('users').doc(uid).update({status});
   loadUserList();
+}
+
+async function deleteUser(uid, name) {
+  if (!confirm(`「${name}」のデータを削除しますか？\nこの操作は元に戻せません。`)) return;
+  try {
+    await db.collection('users').doc(uid).delete();
+    loadUserList();
+  } catch(e) { alert('削除に失敗しました: ' + e.message); }
+}
+
+/* ─── DM Panel (Admin) ─── */
+let _dmByPost  = {};
+let _dmPostMap = {};
+
+async function loadDMPanel() {
+  const panel = $('dmPanel');
+  panel.innerHTML = '<div class="loading-msg">読み込み中...</div>';
+  try {
+    const [tSnap, pSnap] = await Promise.all([
+      db.collection('threads').orderBy('updatedAt','desc').get(),
+      db.collection('posts').get()
+    ]);
+    _dmPostMap = {};
+    pSnap.docs.forEach(d => { _dmPostMap[d.id] = { id:d.id, ...d.data() }; });
+    _dmByPost = {};
+    tSnap.docs.forEach(d => {
+      const t = { id:d.id, ...d.data() };
+      if (!_dmPostMap[t.postId]) return;
+      if (!_dmByPost[t.postId]) _dmByPost[t.postId] = [];
+      _dmByPost[t.postId].push(t);
+    });
+    const postIds = Object.keys(_dmByPost);
+    if (!postIds.length) {
+      panel.innerHTML = '<div class="empty-state" style="padding:40px 20px;">問い合わせはまだありません</div>';
+      return;
+    }
+    if (!activeDmPost || !_dmByPost[activeDmPost]) activeDmPost = postIds[0];
+    if (!activeDmUserId || !_dmByPost[activeDmPost].find(t=>t.userId===activeDmUserId)) {
+      activeDmUserId = _dmByPost[activeDmPost][0].userId;
+    }
+    renderDMPanel();
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state">読み込みエラー: ${e.message}</div>`;
+  }
+}
+
+function renderDMPanel() {
+  const postIds = Object.keys(_dmByPost);
+  const postListHTML = postIds.map(pid => {
+    const threads = _dmByPost[pid];
+    const hasNew  = threads.some(t => {
+      const msgs = t.messages || [];
+      return !t.resolved && msgs.length && msgs[msgs.length-1].from === 'user';
+    });
+    return `
+      <div class="dm-post-item${activeDmPost===pid?' active':''}" onclick="selectDmPost('${pid}')">
+        <div style="flex:1;min-width:0;">
+          <div class="dm-pname">${esc(_dmPostMap[pid]?.title||'(削除済み)')}</div>
+          <div class="dm-sub">${threads.length}件の問い合わせ</div>
+        </div>
+        ${hasNew?'<span style="width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0;"></span>':''}
+      </div>`;
+  }).join('');
+  $('dmPanel').innerHTML = `
+    <div class="dm-post-list">${postListHTML}</div>
+    <div class="dm-win" id="dmWin"></div>`;
+  renderDMWin();
+}
+
+function selectDmPost(postId) {
+  activeDmPost = postId;
+  activeDmUserId = _dmByPost[postId][0].userId;
+  renderDMPanel();
+}
+
+function selectDmUser(userId) {
+  activeDmUserId = userId;
+  renderDMWin();
+}
+
+function renderDMWin() {
+  const win = $('dmWin');
+  if (!win) return;
+  const threads   = _dmByPost[activeDmPost] || [];
+  const thread    = threads.find(t => t.userId === activeDmUserId) || threads[0];
+  if (!thread) { win.innerHTML = '<div class="empty-state">スレッドなし</div>'; return; }
+  const msgs       = thread.messages || [];
+  const isResolved = !!thread.resolved;
+
+  const userTabsHTML = threads.map(t => {
+    const tm = t.messages || [];
+    const hasNew = !t.resolved && tm.length && tm[tm.length-1].from === 'user';
+    return `
+      <button class="dm-utab${activeDmUserId===t.userId?' active':''}" onclick="selectDmUser('${t.userId}')">
+        ${esc(t.userName||t.userId)}
+        ${hasNew?'<span style="display:inline-block;width:6px;height:6px;background:var(--red);border-radius:50%;margin-left:4px;vertical-align:middle;"></span>':''}
+      </button>`;
+  }).join('');
+
+  const msgsHTML = msgs.length
+    ? msgs.map(m => `
+        <div class="dm-bbl ${m.from==='user'?'user':'admin'}">
+          <div class="dm-bbl-who">${m.from==='user'?esc(thread.userName||'社員'):'管理者'}</div>
+          <div class="dm-bbl-text">${esc(m.text)}</div>
+          <div class="dm-bbl-time">${m.time||''}</div>
+        </div>`).join('')
+    : '<div style="text-align:center;font-size:12px;color:var(--text3);padding:16px 0;">メッセージはありません</div>';
+
+  win.innerHTML = `
+    <div class="dm-win-head">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:2px;">問い合わせ内容</div>
+      <div style="font-size:14px;font-weight:700;line-height:1.4;">${esc(_dmPostMap[activeDmPost]?.title||'')}</div>
+      ${isResolved?'<div style="font-size:11px;color:var(--green);margin-top:4px;">✓ 解決済み</div>':''}
+    </div>
+    <div class="dm-user-tabs">${userTabsHTML}</div>
+    <div class="dm-thread" id="adminDmThread">${msgsHTML}</div>
+    <div class="dm-reply-row">
+      <textarea class="dm-reply-input" id="adminDmInput" rows="1"
+        placeholder="${isResolved?'（解決済み）返信するには解決を取り消してください':'返信内容を入力…'}"
+        ${isResolved?'disabled':''}
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+      <button class="dm-reply-btn" id="adminDmSendBtn" onclick="sendAdminReply('${thread.id}')" ${isResolved?'disabled':''}>➤</button>
+    </div>
+    <div style="display:flex;gap:8px;padding:8px 12px 12px;border-top:1px solid var(--border);">
+      <button onclick="toggleResolved('${thread.id}',${isResolved})"
+        style="flex:1;padding:7px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid;cursor:pointer;font-family:inherit;
+        ${isResolved?'background:var(--surface2);color:var(--text2);border-color:var(--border2);':'background:var(--green-l);color:var(--green);border-color:var(--green);'}">
+        ${isResolved?'✎ 解決を取り消す':'✓ 解決済みにする'}
+      </button>
+    </div>`;
+
+  const threadEl = $('adminDmThread');
+  if (threadEl) threadEl.scrollTop = threadEl.scrollHeight;
+}
+
+async function sendAdminReply(threadId) {
+  const input = $('adminDmInput');
+  const text  = input?.value?.trim();
+  if (!text) return;
+  const btn = $('adminDmSendBtn');
+  if (btn) btn.disabled = true;
+  const msg = { from:'admin', text, time:nowStr() };
+  try {
+    await db.collection('threads').doc(threadId).update({
+      messages: firebase.firestore.FieldValue.arrayUnion(msg),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const thread = Object.values(_dmByPost).flat().find(t => t.id === threadId);
+    if (thread) thread.messages = [...(thread.messages||[]), msg];
+    if (input) { input.value = ''; input.style.height = ''; }
+    renderDMWin();
+    updateBadges();
+  } catch(e) { alert('送信に失敗しました: ' + e.message); }
+  if (btn) btn.disabled = false;
+}
+
+async function toggleResolved(threadId, currentlyResolved) {
+  try {
+    await db.collection('threads').doc(threadId).update({
+      resolved: !currentlyResolved,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const thread = Object.values(_dmByPost).flat().find(t => t.id === threadId);
+    if (thread) thread.resolved = !currentlyResolved;
+    renderDMWin();
+    updateBadges();
+  } catch(e) { alert('更新に失敗しました'); }
+}
+
+function goToDM(postId) {
+  activeDmPost = postId;
+  activeDmUserId = null;
+  document.querySelector('[data-tab="dms"]').click();
 }
 
 </script>

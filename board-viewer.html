@@ -242,6 +242,31 @@ let currentUser = null;
 let allPosts    = [];
 let currentCat  = 'all';
 
+/* ─── メール通知（EmailJS）─── */
+// 設定値は管理者画面の「M365設定」タブから保存されます
+async function sendAdminEmail(subject, message) {
+  const si = localStorage.getItem('emailjs_service_id')  || '';
+  const ti = localStorage.getItem('emailjs_template_id') || '';
+  const pk = localStorage.getItem('emailjs_public_key')  || '';
+  if (!si || !ti || !pk) return;
+  try {
+    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id: si, template_id: ti, user_id: pk,
+        template_params: {
+          to_email: 'kawashima@kamidk.co.jp',
+          subject,
+          message
+        }
+      })
+    });
+  } catch(e) {
+    console.warn('メール通知送信エラー:', e);
+  }
+}
+
 const CATS = [
   {id:'all',    label:'すべて'},
   {id:'notice', label:'お知らせ'},
@@ -302,6 +327,11 @@ async function doRegister() {
       name, dept, email, status:'pending', isAdmin:false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    // 管理者へメール通知
+    sendAdminEmail(
+      '【社内掲示板】新しい社員登録申請があります',
+      `以下の方から登録申請がありました。\n\n氏名：${name}\n部署：${dept}\nメール：${email}\n\n管理者画面の「社員承認」タブから承認してください。`
+    );
     // onAuthStateChanged → showPending
   } catch(e) {
     btn.disabled=false; btn.textContent='登録申請する';
@@ -524,6 +554,12 @@ async function sendDM(postId) {
       messages: firebase.firestore.FieldValue.arrayUnion(msg),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge:true});
+    // 管理者へメール通知
+    const targetPost = allPosts.find(x => x.id === postId);
+    sendAdminEmail(
+      '【社内掲示板】管理者への問い合わせがあります',
+      `以下の方から問い合わせがありました。\n\n差出人：${currentUser.name}（${currentUser.dept}）\n対象投稿：${targetPost?.title||postId}\nメッセージ：${text}\n\n管理者画面の「問い合わせ」タブから返信してください。`
+    );
     input.value = ''; input.style.height = '';
     await loadDMThread(postId);
   } catch(e) { console.error(e); alert('送信に失敗しました'); }

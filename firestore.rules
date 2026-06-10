@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ログイン済みかどうか
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // 自分のusersドキュメントを取得
+    function myData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // 管理者かどうか
+    function isAdmin() {
+      return isSignedIn() && myData().isAdmin == true;
+    }
+
+    // 承認済み社員かどうか
+    function isApproved() {
+      return isSignedIn() && myData().status == 'approved';
+    }
+
+    // ─────────────────────────────────────────
+    // users コレクション（社員情報）
+    // ─────────────────────────────────────────
+    match /users/{userId} {
+
+      // 自分のデータ or 管理者だけ読める
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      // 新規登録：自分のドキュメントを作成できる
+      // ただし status=pending・isAdmin=false に固定（勝手に管理者になれない）
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       request.resource.data.status == 'pending' &&
+                       request.resource.data.isAdmin == false;
+
+      // 更新（承認/否認）は管理者だけ
+      allow update: if isAdmin();
+
+      // 削除は誰もできない
+      allow delete: if false;
+    }
+
+    // ─────────────────────────────────────────
+    // posts コレクション（掲示板の投稿）
+    // ─────────────────────────────────────────
+    match /posts/{postId} {
+
+      // 承認済み社員だけ読める
+      allow read: if isApproved();
+
+      // 投稿・削除は管理者だけ
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+
+      // 更新：
+      //   管理者 → すべてのフィールドを変更可
+      //   承認済み社員 → readBy フィールドだけ更新可（既読マーク）
+      allow update: if isAdmin() ||
+                       (isApproved() &&
+                        request.resource.data.diff(resource.data)
+                          .affectedKeys().hasOnly(['readBy']));
+    }
+
+    // ─────────────────────────────────────────
+    // threads コレクション（DM問い合わせ）
+    // ─────────────────────────────────────────
+    match /threads/{threadId} {
+
+      // 自分のスレッド or 管理者だけ読める
+      allow read: if isSignedIn() &&
+                     (isAdmin() || resource.data.userId == request.auth.uid);
+
+      // 承認済み社員が自分のスレッドを作成できる
+      allow create: if isApproved() &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // 更新：自分のスレッド or 管理者（管理者が返信するため）
+      allow update: if isAdmin() ||
+                       (isApproved() && resource.data.userId == request.auth.uid);
+
+      // 削除は誰もできない
+      allow delete: if false;
+    }
+  }
+}

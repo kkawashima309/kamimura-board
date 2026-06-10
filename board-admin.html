@@ -113,6 +113,23 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
 .pin-row input{width:17px;height:17px;accent-color:var(--amber);}
 .pin-row label{font-size:13px;color:var(--text2);cursor:pointer;}
 
+/* settings tab */
+.settings-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:20px;}
+.settings-title{font-size:16px;font-weight:700;margin-bottom:6px;}
+.settings-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px;}
+.settings-section{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.settings-section:last-child{border-bottom:none;margin-bottom:0;}
+.settings-section-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.settings-status{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.st-set{background:var(--green-l);color:var(--green);}
+.st-unset{background:var(--border);color:var(--text3);}
+.settings-save-btn{padding:8px 22px;background:var(--accent);color:white;border:none;border-radius:20px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:10px;}
+.settings-save-btn:active{background:var(--accent-d);}
+.settings-clear-btn{padding:7px 16px;background:white;color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:10px;margin-left:8px;}
+.howto-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.howto-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.howto-text{font-size:12px;color:var(--text2);line-height:1.65;}
+
 /* DM panel */
 .dm-post-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-s);overflow:hidden;margin-bottom:12px;}
 .dm-post-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
@@ -177,11 +194,13 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
     <button class="tab-btn" data-tab="new" onclick="switchTab(this)">新規投稿</button>
     <button class="tab-btn" data-tab="users" onclick="switchTab(this)">社員承認 <span class="tab-badge" id="userBadge" style="display:none;">0</span></button>
     <button class="tab-btn" data-tab="dms" onclick="switchTab(this)">問い合わせ <span class="tab-badge" id="dmBadge" style="display:none;">0</span></button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab(this)">⚙ M365設定</button>
   </div>
   <div id="tabPosts"><div class="section-wrap" id="postList"><div class="loading-msg">読み込み中...</div></div></div>
   <div id="tabNew" style="display:none;"><div class="section-wrap"><div class="form-card" id="newPostForm"></div></div></div>
   <div id="tabUsers" style="display:none;"><div class="user-filter" id="userFilter"><button class="uf-btn active" data-uf="all" onclick="setUF(this)">すべて</button><button class="uf-btn" data-uf="pending" onclick="setUF(this)">承認待ち</button><button class="uf-btn" data-uf="approved" onclick="setUF(this)">承認済み</button><button class="uf-btn" data-uf="rejected" onclick="setUF(this)">否認</button></div><div class="section-wrap" id="userList"></div></div>
   <div id="tabDms" style="display:none;"><div class="section-wrap"><div id="dmPanel"></div></div></div>
+  <div id="tabSettings" style="display:none;"><div class="section-wrap" id="settingsPanel"></div></div>
 </div>
 
 <!-- Firebase SDK -->
@@ -271,17 +290,17 @@ function switchScreen(id) {
 function switchTab(btn) {
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['tabPosts','tabNew','tabUsers','tabDms'].forEach(t=>$(t).style.display='none');
-  const map={posts:'tabPosts',new:'tabNew',users:'tabUsers',dms:'tabDms'};
+  ['tabPosts','tabNew','tabUsers','tabDms','tabSettings'].forEach(t=>$(t).style.display='none');
+  const map={posts:'tabPosts',new:'tabNew',users:'tabUsers',dms:'tabDms',settings:'tabSettings'};
   $(map[btn.dataset.tab]).style.display='';
-  // 投稿一覧以外のタブに切り替えたらリスナーを解除
   if (btn.dataset.tab !== 'posts' && _postListenerUnsubscribe) {
     _postListenerUnsubscribe(); _postListenerUnsubscribe = null;
   }
-  if (btn.dataset.tab==='posts')  loadPostList();
-  if (btn.dataset.tab==='new')    renderNewPostForm();
-  if (btn.dataset.tab==='users')  loadUserList();
-  if (btn.dataset.tab==='dms')    loadDMPanel();
+  if (btn.dataset.tab==='posts')    loadPostList();
+  if (btn.dataset.tab==='new')      renderNewPostForm();
+  if (btn.dataset.tab==='users')    loadUserList();
+  if (btn.dataset.tab==='dms')      loadDMPanel();
+  if (btn.dataset.tab==='settings') renderSettingsPanel();
 }
 
 /* ─── badges ─── */
@@ -473,12 +492,166 @@ async function submitPost() {
       files:[...fileEntries], backNumbers:[...bnEntries],
       readBy:[], createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-    alert('投稿しました！');
+    // Teams通知を送信（設定済みの場合のみ）
+    await notifyTeams({ cat:selCat, title, body, pinned:pin });
+    // 行事・イベントはカレンダーダウンロードを促す
+    if (selCat === 'event') {
+      if (confirm(`「${title}」をOutlookカレンダーに追加しますか？`)) {
+        downloadICS(title, body);
+      }
+    } else {
+      alert('投稿しました！');
+    }
     document.querySelector('[data-tab="posts"]').click();
   } catch(e) {
     btn.disabled=false; btn.textContent='投稿する';
     showErr('postErr','投稿に失敗しました: '+e.message);
   }
+}
+
+/* ─── Microsoft Teams 通知 ─── */
+async function notifyTeams(post) {
+  const webhookUrl = localStorage.getItem('teams_webhook_url') || '';
+  if (!webhookUrl) return;
+  const catLabel = TLBL[post.cat] || post.cat;
+  const preview  = (post.body||'').length > 160 ? post.body.substring(0,160)+'…' : post.body;
+  const payload  = {
+    type: 'message',
+    attachments: [{
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      contentUrl: null,
+      content: {
+        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+        type: 'AdaptiveCard',
+        version: '1.4',
+        body: [
+          { type:'TextBlock', text:'📋 神村電機工業 社内掲示板', size:'Small', color:'Accent', weight:'Bolder' },
+          { type:'TextBlock', text: post.pinned ? `📌 ${post.title}` : post.title,
+            size:'Large', weight:'Bolder', wrap:true },
+          { type:'FactSet', facts:[
+            { title:'カテゴリ', value: catLabel },
+            { title:'投稿日',   value: new Date().toLocaleDateString('ja-JP') }
+          ]},
+          { type:'TextBlock', text: preview, wrap:true, spacing:'Small' }
+        ]
+      }
+    }]
+  };
+  try {
+    await fetch(webhookUrl, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    console.warn('Teams通知の送信に失敗しました:', e);
+  }
+}
+
+/* ─── Outlookカレンダー(.ics)生成 ─── */
+function generateICS(title, description) {
+  const now    = new Date();
+  const stamp  = now.toISOString().replace(/[-:.]/g,'').slice(0,15)+'Z';
+  const dtDate = now.toISOString().slice(0,10).replace(/-/g,'');
+  const uid    = `kamimura-board-${Date.now()}@kamimura.co.jp`;
+  const desc   = (description||'').replace(/\n/g,'\\n').replace(/,/g,'\\,').substring(0,500);
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//神村電機工業//掲示板//JA',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${dtDate}`,
+    `DTEND;VALUE=DATE:${dtDate}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${desc}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+function downloadICS(title, description) {
+  const ics  = generateICS(title, description);
+  const blob = new Blob([ics], { type:'text/calendar;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${title}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('カレンダーファイルをダウンロードしました。\nOutlookで開くと予定が追加されます。');
+}
+
+/* ─── M365設定パネル ─── */
+function renderSettingsPanel() {
+  const webhookUrl = localStorage.getItem('teams_webhook_url') || '';
+  const isSet      = webhookUrl.length > 0;
+  $('settingsPanel').innerHTML = `
+    <div class="settings-card">
+      <div class="settings-title">Microsoft 365 連携設定</div>
+      <div class="settings-desc">設定した内容はこのブラウザに保存されます。<br>別の端末やブラウザでは再設定が必要です。</div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">
+          💬 Microsoft Teams 通知
+          <span class="settings-status ${isSet?'st-set':'st-unset'}">${isSet?'設定済み':'未設定'}</span>
+        </div>
+        <div class="howto-step"><div class="howto-num">1</div><div class="howto-text">Teamsで通知を受け取りたい<b>チャンネル</b>を開く</div></div>
+        <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">チャンネル名の右 ⋯ → <b>コネクタ</b> → <b>Incoming Webhook</b> を追加</div></div>
+        <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">名前を入力（例：社内掲示板）して <b>作成</b> → 表示されたURLをコピー</div></div>
+        <div class="howto-step"><div class="howto-num">4</div><div class="howto-text">下のフィールドに貼り付けて保存</div></div>
+        <label class="form-label" style="margin-top:12px;">Incoming Webhook URL</label>
+        <input class="form-input" id="sTeamsUrl" type="url"
+          placeholder="https://xxxxx.webhook.office.com/webhookb2/..."
+          value="${esc(webhookUrl)}">
+        <button class="settings-save-btn" onclick="saveTeamsWebhook()">保存する</button>
+        ${isSet?`<button class="settings-clear-btn" onclick="clearTeamsWebhook()">削除</button>`:''}
+        <div id="teamsMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">📅 Outlookカレンダー連携</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.75;">
+          カテゴリが <b>「行事・イベント」</b> の投稿を作成すると、<br>
+          投稿後に <b>.ics ファイル</b>（カレンダーファイル）を自動ダウンロード。<br>
+          Outlookで開くだけで予定に追加されます。<br>
+          <span style="font-size:11px;color:var(--text3);">※ 設定不要。追加操作も必要ありません。</span>
+        </div>
+        <button onclick="downloadICS('テスト予定：社内掲示板','カレンダー連携の動作確認用サンプルです。')"
+          style="margin-top:14px;padding:8px 18px;border:1.5px solid var(--accent);border-radius:20px;background:var(--accent-l);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+          テスト用 .ics をダウンロード
+        </button>
+      </div>
+    </div>`;
+}
+
+function saveTeamsWebhook() {
+  const url = v('sTeamsUrl');
+  if (url && !url.startsWith('https://')) {
+    showTeamsMsg('URLが正しくありません（https:// で始まるURLを入力してください）', 'red');
+    return;
+  }
+  localStorage.setItem('teams_webhook_url', url);
+  showTeamsMsg(url ? '保存しました。次回の投稿からTeamsに通知されます。' : 'URLを削除しました。', 'green');
+  setTimeout(renderSettingsPanel, 1200);
+}
+
+function clearTeamsWebhook() {
+  localStorage.removeItem('teams_webhook_url');
+  renderSettingsPanel();
+}
+
+function showTeamsMsg(msg, color) {
+  const el = $('teamsMsg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color === 'red' ? 'var(--red)' : 'var(--green)';
+  el.style.display = 'block';
 }
 
 /* ─── user approval ─── */

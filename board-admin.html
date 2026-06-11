@@ -113,6 +113,23 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
 .pin-row input{width:17px;height:17px;accent-color:var(--amber);}
 .pin-row label{font-size:13px;color:var(--text2);cursor:pointer;}
 
+/* settings tab */
+.settings-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:20px;}
+.settings-title{font-size:16px;font-weight:700;margin-bottom:6px;}
+.settings-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px;}
+.settings-section{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.settings-section:last-child{border-bottom:none;margin-bottom:0;}
+.settings-section-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.settings-status{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.st-set{background:var(--green-l);color:var(--green);}
+.st-unset{background:var(--border);color:var(--text3);}
+.settings-save-btn{padding:8px 22px;background:var(--accent);color:white;border:none;border-radius:20px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:10px;}
+.settings-save-btn:active{background:var(--accent-d);}
+.settings-clear-btn{padding:7px 16px;background:white;color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:10px;margin-left:8px;}
+.howto-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.howto-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.howto-text{font-size:12px;color:var(--text2);line-height:1.65;}
+
 /* DM panel */
 .dm-post-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-s);overflow:hidden;margin-bottom:12px;}
 .dm-post-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
@@ -128,7 +145,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
 .dm-user-tabs::-webkit-scrollbar{display:none;}
 .dm-utab{flex-shrink:0;padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text2);}
 .dm-utab.active{background:var(--accent);border-color:var(--accent);color:white;}
-.dm-thread{padding:12px;display:flex;flex-direction:column;gap:8px;min-height:100px;}
+.dm-thread{padding:12px;display:flex;flex-direction:column;gap:8px;min-height:100px;max-height:320px;overflow-y:auto;}
 .dm-bbl{max-width:78%;}
 .dm-bbl.user{align-self:flex-start;}
 .dm-bbl.admin{align-self:flex-end;}
@@ -177,11 +194,13 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
     <button class="tab-btn" data-tab="new" onclick="switchTab(this)">新規投稿</button>
     <button class="tab-btn" data-tab="users" onclick="switchTab(this)">社員承認 <span class="tab-badge" id="userBadge" style="display:none;">0</span></button>
     <button class="tab-btn" data-tab="dms" onclick="switchTab(this)">問い合わせ <span class="tab-badge" id="dmBadge" style="display:none;">0</span></button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab(this)">⚙ M365設定</button>
   </div>
   <div id="tabPosts"><div class="section-wrap" id="postList"><div class="loading-msg">読み込み中...</div></div></div>
   <div id="tabNew" style="display:none;"><div class="section-wrap"><div class="form-card" id="newPostForm"></div></div></div>
   <div id="tabUsers" style="display:none;"><div class="user-filter" id="userFilter"><button class="uf-btn active" data-uf="all" onclick="setUF(this)">すべて</button><button class="uf-btn" data-uf="pending" onclick="setUF(this)">承認待ち</button><button class="uf-btn" data-uf="approved" onclick="setUF(this)">承認済み</button><button class="uf-btn" data-uf="rejected" onclick="setUF(this)">否認</button></div><div class="section-wrap" id="userList"></div></div>
   <div id="tabDms" style="display:none;"><div class="section-wrap"><div id="dmPanel"></div></div></div>
+  <div id="tabSettings" style="display:none;"><div class="section-wrap" id="settingsPanel"></div></div>
 </div>
 
 <!-- Firebase SDK -->
@@ -271,17 +290,17 @@ function switchScreen(id) {
 function switchTab(btn) {
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['tabPosts','tabNew','tabUsers','tabDms'].forEach(t=>$(t).style.display='none');
-  const map={posts:'tabPosts',new:'tabNew',users:'tabUsers',dms:'tabDms'};
+  ['tabPosts','tabNew','tabUsers','tabDms','tabSettings'].forEach(t=>$(t).style.display='none');
+  const map={posts:'tabPosts',new:'tabNew',users:'tabUsers',dms:'tabDms',settings:'tabSettings'};
   $(map[btn.dataset.tab]).style.display='';
-  // 投稿一覧以外のタブに切り替えたらリスナーを解除
   if (btn.dataset.tab !== 'posts' && _postListenerUnsubscribe) {
     _postListenerUnsubscribe(); _postListenerUnsubscribe = null;
   }
-  if (btn.dataset.tab==='posts')  loadPostList();
-  if (btn.dataset.tab==='new')    renderNewPostForm();
-  if (btn.dataset.tab==='users')  loadUserList();
-  if (btn.dataset.tab==='dms')    loadDMPanel();
+  if (btn.dataset.tab==='posts')    loadPostList();
+  if (btn.dataset.tab==='new')      renderNewPostForm();
+  if (btn.dataset.tab==='users')    loadUserList();
+  if (btn.dataset.tab==='dms')      loadDMPanel();
+  if (btn.dataset.tab==='settings') renderSettingsPanel();
 }
 
 /* ─── badges ─── */
@@ -473,12 +492,203 @@ async function submitPost() {
       files:[...fileEntries], backNumbers:[...bnEntries],
       readBy:[], createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-    alert('投稿しました！');
+    // Teams通知を送信（設定済みの場合のみ）
+    await notifyTeams({ cat:selCat, title, body, pinned:pin });
+    // 行事・イベントはカレンダーダウンロードを促す
+    if (selCat === 'event') {
+      if (confirm(`「${title}」をOutlookカレンダーに追加しますか？`)) {
+        downloadICS(title, body);
+      }
+    } else {
+      alert('投稿しました！');
+    }
     document.querySelector('[data-tab="posts"]').click();
   } catch(e) {
     btn.disabled=false; btn.textContent='投稿する';
     showErr('postErr','投稿に失敗しました: '+e.message);
   }
+}
+
+/* ─── Microsoft Teams 通知 ─── */
+async function notifyTeams(post) {
+  const webhookUrl = localStorage.getItem('teams_webhook_url') || '';
+  if (!webhookUrl) return;
+  const catLabel = TLBL[post.cat] || post.cat;
+  const preview  = (post.body||'').length > 160 ? post.body.substring(0,160)+'…' : post.body;
+  const payload  = {
+    type: 'message',
+    attachments: [{
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      contentUrl: null,
+      content: {
+        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+        type: 'AdaptiveCard',
+        version: '1.4',
+        body: [
+          { type:'TextBlock', text:'📋 神村電機工業 社内掲示板', size:'Small', color:'Accent', weight:'Bolder' },
+          { type:'TextBlock', text: post.pinned ? `📌 ${post.title}` : post.title,
+            size:'Large', weight:'Bolder', wrap:true },
+          { type:'FactSet', facts:[
+            { title:'カテゴリ', value: catLabel },
+            { title:'投稿日',   value: new Date().toLocaleDateString('ja-JP') }
+          ]},
+          { type:'TextBlock', text: preview, wrap:true, spacing:'Small' }
+        ]
+      }
+    }]
+  };
+  try {
+    await fetch(webhookUrl, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    console.warn('Teams通知の送信に失敗しました:', e);
+  }
+}
+
+/* ─── Outlookカレンダー(.ics)生成 ─── */
+function generateICS(title, description) {
+  const now    = new Date();
+  const stamp  = now.toISOString().replace(/[-:.]/g,'').slice(0,15)+'Z';
+  const dtDate = now.toISOString().slice(0,10).replace(/-/g,'');
+  const uid    = `kamimura-board-${Date.now()}@kamimura.co.jp`;
+  const desc   = (description||'').replace(/\n/g,'\\n').replace(/,/g,'\\,').substring(0,500);
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//神村電機工業//掲示板//JA',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${dtDate}`,
+    `DTEND;VALUE=DATE:${dtDate}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${desc}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+function downloadICS(title, description) {
+  const ics  = generateICS(title, description);
+  const blob = new Blob([ics], { type:'text/calendar;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${title}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('カレンダーファイルをダウンロードしました。\nOutlookで開くと予定が追加されます。');
+}
+
+/* ─── M365設定パネル ─── */
+function renderSettingsPanel() {
+  const webhookUrl = localStorage.getItem('teams_webhook_url') || '';
+  const isSet      = webhookUrl.length > 0;
+  $('settingsPanel').innerHTML = `
+    <div class="settings-card">
+      <div class="settings-title">Microsoft 365 連携設定</div>
+      <div class="settings-desc">設定した内容はこのブラウザに保存されます。<br>別の端末やブラウザでは再設定が必要です。</div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">
+          💬 Microsoft Teams 通知
+          <span class="settings-status ${isSet?'st-set':'st-unset'}">${isSet?'設定済み':'未設定'}</span>
+        </div>
+        <div class="howto-step"><div class="howto-num">1</div><div class="howto-text">Teamsで通知を受け取りたい<b>チャンネル</b>を開く</div></div>
+        <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">チャンネル名の右 ⋯ → <b>コネクタ</b> → <b>Incoming Webhook</b> を追加</div></div>
+        <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">名前を入力（例：社内掲示板）して <b>作成</b> → 表示されたURLをコピー</div></div>
+        <div class="howto-step"><div class="howto-num">4</div><div class="howto-text">下のフィールドに貼り付けて保存</div></div>
+        <label class="form-label" style="margin-top:12px;">Incoming Webhook URL</label>
+        <input class="form-input" id="sTeamsUrl" type="url"
+          placeholder="https://xxxxx.webhook.office.com/webhookb2/..."
+          value="${esc(webhookUrl)}">
+        <button class="settings-save-btn" onclick="saveTeamsWebhook()">保存する</button>
+        ${isSet?`<button class="settings-clear-btn" onclick="clearTeamsWebhook()">削除</button>`:''}
+        <div id="teamsMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">
+          ✉ メール通知（EmailJS）
+          <span class="settings-status ${localStorage.getItem('emailjs_public_key')?'st-set':'st-unset'}">${localStorage.getItem('emailjs_public_key')?'設定済み':'未設定'}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:12px;">
+          社員申請・問い合わせ受信時に <b>kawashima@kamidk.co.jp</b> へ通知メールを送ります。<br>
+          <a href="https://www.emailjs.com/" target="_blank" rel="noopener" style="color:var(--accent);">emailjs.com</a> で無料アカウントを作成し、以下の3つの値を設定してください。
+        </div>
+        <div class="howto-step"><div class="howto-num">1</div><div class="howto-text">EmailJS にログイン → <b>Email Services</b> でGmailなどを連携 → Service ID をコピー</div></div>
+        <div class="howto-step"><div class="howto-num">2</div><div class="howto-text"><b>Email Templates</b> で新規テンプレートを作成。件名に <code>{{subject}}</code>、本文に <code>{{message}}</code> を入れる → Template ID をコピー</div></div>
+        <div class="howto-step"><div class="howto-num">3</div><div class="howto-text"><b>Account → General → Public Key</b> をコピー</div></div>
+        <label class="form-label" style="margin-top:10px;">Service ID</label>
+        <input class="form-input" id="sEjsService"  type="text" placeholder="service_xxxxxxx" value="${esc(localStorage.getItem('emailjs_service_id')||'')}">
+        <label class="form-label">Template ID</label>
+        <input class="form-input" id="sEjsTemplate" type="text" placeholder="template_xxxxxxx" value="${esc(localStorage.getItem('emailjs_template_id')||'')}">
+        <label class="form-label">Public Key</label>
+        <input class="form-input" id="sEjsKey"      type="text" placeholder="xxxxxxxxxxxxxxxxxxxx" value="${esc(localStorage.getItem('emailjs_public_key')||'')}">
+        <button class="settings-save-btn" onclick="saveEmailJS()">保存する</button>
+        ${localStorage.getItem('emailjs_public_key')?`<button class="settings-clear-btn" onclick="clearEmailJS()">削除</button>`:''}
+        <div id="ejsMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">📅 Outlookカレンダー連携</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.75;">
+          カテゴリが <b>「行事・イベント」</b> の投稿を作成すると、<br>
+          投稿後に <b>.ics ファイル</b>（カレンダーファイル）を自動ダウンロード。<br>
+          Outlookで開くだけで予定に追加されます。<br>
+          <span style="font-size:11px;color:var(--text3);">※ 設定不要。追加操作も必要ありません。</span>
+        </div>
+        <button onclick="downloadICS('テスト予定：社内掲示板','カレンダー連携の動作確認用サンプルです。')"
+          style="margin-top:14px;padding:8px 18px;border:1.5px solid var(--accent);border-radius:20px;background:var(--accent-l);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+          テスト用 .ics をダウンロード
+        </button>
+      </div>
+    </div>`;
+}
+
+function saveTeamsWebhook() {
+  const url = v('sTeamsUrl');
+  if (url && !url.startsWith('https://')) {
+    showTeamsMsg('URLが正しくありません（https:// で始まるURLを入力してください）', 'red');
+    return;
+  }
+  localStorage.setItem('teams_webhook_url', url);
+  showTeamsMsg(url ? '保存しました。次回の投稿からTeamsに通知されます。' : 'URLを削除しました。', 'green');
+  setTimeout(renderSettingsPanel, 1200);
+}
+
+function clearTeamsWebhook() {
+  localStorage.removeItem('teams_webhook_url');
+  renderSettingsPanel();
+}
+
+function showTeamsMsg(msg, color) {
+  const el = $('teamsMsg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color === 'red' ? 'var(--red)' : 'var(--green)';
+  el.style.display = 'block';
+}
+
+function saveEmailJS() {
+  const si = v('sEjsService'), ti = v('sEjsTemplate'), pk = v('sEjsKey');
+  if (si) localStorage.setItem('emailjs_service_id',  si);
+  if (ti) localStorage.setItem('emailjs_template_id', ti);
+  if (pk) localStorage.setItem('emailjs_public_key',  pk);
+  const el = $('ejsMsg');
+  if (el) { el.textContent='保存しました'; el.style.color='var(--green)'; el.style.display='block'; }
+  setTimeout(renderSettingsPanel, 1000);
+}
+function clearEmailJS() {
+  ['emailjs_service_id','emailjs_template_id','emailjs_public_key'].forEach(k=>localStorage.removeItem(k));
+  renderSettingsPanel();
 }
 
 /* ─── user approval ─── */
@@ -511,6 +721,7 @@ async function loadUserList() {
           ${u.status==='pending'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認する</button><button class="btn-reject" onclick="setUserStatus('${u.uid}','rejected')">✗ 否認する</button>`:''}
           ${u.status==='approved'?`<button class="btn-revoke" onclick="setUserStatus('${u.uid}','rejected')">アクセス取り消し</button>`:''}
           ${u.status==='rejected'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認に変更</button>`:''}
+          <button class="btn-del" style="margin-left:auto;" onclick="deleteUser('${u.uid}','${esc(u.name)}')">🗑 削除</button>
         </div>
       </div>`).join('');
     updateBadges();
@@ -520,6 +731,179 @@ async function loadUserList() {
 async function setUserStatus(uid, status) {
   await db.collection('users').doc(uid).update({status});
   loadUserList();
+}
+
+async function deleteUser(uid, name) {
+  if (!confirm(`「${name}」のデータを削除しますか？\nこの操作は元に戻せません。`)) return;
+  try {
+    await db.collection('users').doc(uid).delete();
+    loadUserList();
+  } catch(e) { alert('削除に失敗しました: ' + e.message); }
+}
+
+/* ─── DM Panel (Admin) ─── */
+let _dmByPost  = {};
+let _dmPostMap = {};
+
+async function loadDMPanel() {
+  const panel = $('dmPanel');
+  panel.innerHTML = '<div class="loading-msg">読み込み中...</div>';
+  try {
+    const [tSnap, pSnap] = await Promise.all([
+      db.collection('threads').orderBy('updatedAt','desc').get(),
+      db.collection('posts').get()
+    ]);
+    _dmPostMap = {};
+    pSnap.docs.forEach(d => { _dmPostMap[d.id] = { id:d.id, ...d.data() }; });
+    _dmByPost = {};
+    tSnap.docs.forEach(d => {
+      const t = { id:d.id, ...d.data() };
+      if (!_dmPostMap[t.postId]) return;
+      if (!_dmByPost[t.postId]) _dmByPost[t.postId] = [];
+      _dmByPost[t.postId].push(t);
+    });
+    const postIds = Object.keys(_dmByPost);
+    if (!postIds.length) {
+      panel.innerHTML = '<div class="empty-state" style="padding:40px 20px;">問い合わせはまだありません</div>';
+      return;
+    }
+    if (!activeDmPost || !_dmByPost[activeDmPost]) activeDmPost = postIds[0];
+    if (!activeDmUserId || !_dmByPost[activeDmPost].find(t=>t.userId===activeDmUserId)) {
+      activeDmUserId = _dmByPost[activeDmPost][0].userId;
+    }
+    renderDMPanel();
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state">読み込みエラー: ${e.message}</div>`;
+  }
+}
+
+function renderDMPanel() {
+  const postIds = Object.keys(_dmByPost);
+  const postListHTML = postIds.map(pid => {
+    const threads = _dmByPost[pid];
+    const hasNew  = threads.some(t => {
+      const msgs = t.messages || [];
+      return !t.resolved && msgs.length && msgs[msgs.length-1].from === 'user';
+    });
+    return `
+      <div class="dm-post-item${activeDmPost===pid?' active':''}" onclick="selectDmPost('${pid}')">
+        <div style="flex:1;min-width:0;">
+          <div class="dm-pname">${esc(_dmPostMap[pid]?.title||'(削除済み)')}</div>
+          <div class="dm-sub">${threads.length}件の問い合わせ</div>
+        </div>
+        ${hasNew?'<span style="width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0;"></span>':''}
+      </div>`;
+  }).join('');
+  $('dmPanel').innerHTML = `
+    <div class="dm-post-list">${postListHTML}</div>
+    <div class="dm-win" id="dmWin"></div>`;
+  renderDMWin();
+}
+
+function selectDmPost(postId) {
+  activeDmPost = postId;
+  activeDmUserId = _dmByPost[postId][0].userId;
+  renderDMPanel();
+}
+
+function selectDmUser(userId) {
+  activeDmUserId = userId;
+  renderDMWin();
+}
+
+function renderDMWin() {
+  const win = $('dmWin');
+  if (!win) return;
+  const threads   = _dmByPost[activeDmPost] || [];
+  const thread    = threads.find(t => t.userId === activeDmUserId) || threads[0];
+  if (!thread) { win.innerHTML = '<div class="empty-state">スレッドなし</div>'; return; }
+  const msgs       = thread.messages || [];
+  const isResolved = !!thread.resolved;
+
+  const userTabsHTML = threads.map(t => {
+    const tm = t.messages || [];
+    const hasNew = !t.resolved && tm.length && tm[tm.length-1].from === 'user';
+    return `
+      <button class="dm-utab${activeDmUserId===t.userId?' active':''}" onclick="selectDmUser('${t.userId}')">
+        ${esc(t.userName||t.userId)}
+        ${hasNew?'<span style="display:inline-block;width:6px;height:6px;background:var(--red);border-radius:50%;margin-left:4px;vertical-align:middle;"></span>':''}
+      </button>`;
+  }).join('');
+
+  const msgsHTML = msgs.length
+    ? msgs.map(m => `
+        <div class="dm-bbl ${m.from==='user'?'user':'admin'}">
+          <div class="dm-bbl-who">${m.from==='user'?esc(thread.userName||'社員'):'管理者'}</div>
+          <div class="dm-bbl-text">${esc(m.text)}</div>
+          <div class="dm-bbl-time">${m.time||''}</div>
+        </div>`).join('')
+    : '<div style="text-align:center;font-size:12px;color:var(--text3);padding:16px 0;">メッセージはありません</div>';
+
+  win.innerHTML = `
+    <div class="dm-win-head">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:2px;">問い合わせ内容</div>
+      <div style="font-size:14px;font-weight:700;line-height:1.4;">${esc(_dmPostMap[activeDmPost]?.title||'')}</div>
+      ${isResolved?'<div style="font-size:11px;color:var(--green);margin-top:4px;">✓ 解決済み</div>':''}
+    </div>
+    <div class="dm-user-tabs">${userTabsHTML}</div>
+    <div class="dm-thread" id="adminDmThread">${msgsHTML}</div>
+    <div class="dm-reply-row">
+      <textarea class="dm-reply-input" id="adminDmInput" rows="1"
+        placeholder="${isResolved?'（解決済み）返信するには解決を取り消してください':'返信内容を入力…'}"
+        ${isResolved?'disabled':''}
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+      <button class="dm-reply-btn" id="adminDmSendBtn" onclick="sendAdminReply('${thread.id}')" ${isResolved?'disabled':''}>➤</button>
+    </div>
+    <div style="display:flex;gap:8px;padding:8px 12px 12px;border-top:1px solid var(--border);">
+      <button onclick="toggleResolved('${thread.id}',${isResolved})"
+        style="flex:1;padding:7px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid;cursor:pointer;font-family:inherit;
+        ${isResolved?'background:var(--surface2);color:var(--text2);border-color:var(--border2);':'background:var(--green-l);color:var(--green);border-color:var(--green);'}">
+        ${isResolved?'✎ 解決を取り消す':'✓ 解決済みにする'}
+      </button>
+    </div>`;
+
+  const threadEl = $('adminDmThread');
+  if (threadEl) threadEl.scrollTop = threadEl.scrollHeight;
+}
+
+async function sendAdminReply(threadId) {
+  const input = $('adminDmInput');
+  const text  = input?.value?.trim();
+  if (!text) return;
+  const btn = $('adminDmSendBtn');
+  if (btn) btn.disabled = true;
+  const msg = { from:'admin', text, time:nowStr() };
+  try {
+    await db.collection('threads').doc(threadId).update({
+      messages: firebase.firestore.FieldValue.arrayUnion(msg),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const thread = Object.values(_dmByPost).flat().find(t => t.id === threadId);
+    if (thread) thread.messages = [...(thread.messages||[]), msg];
+    if (input) { input.value = ''; input.style.height = ''; }
+    renderDMWin();
+    updateBadges();
+  } catch(e) { alert('送信に失敗しました: ' + e.message); }
+  if (btn) btn.disabled = false;
+}
+
+async function toggleResolved(threadId, currentlyResolved) {
+  try {
+    await db.collection('threads').doc(threadId).update({
+      resolved: !currentlyResolved,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const thread = Object.values(_dmByPost).flat().find(t => t.id === threadId);
+    if (thread) thread.resolved = !currentlyResolved;
+    renderDMWin();
+    updateBadges();
+  } catch(e) { alert('更新に失敗しました'); }
+}
+
+function goToDM(postId) {
+  activeDmPost = postId;
+  activeDmUserId = null;
+  document.querySelector('[data-tab="dms"]').click();
 }
 
 </script>

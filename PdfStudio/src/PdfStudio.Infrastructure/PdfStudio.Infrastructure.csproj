@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>PdfStudio.Infrastructure</RootNamespace>
+    <AssemblyName>PdfStudio.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PdfStudio.Domain\PdfStudio.Domain.csproj" />
+    <ProjectReference Include="..\PdfStudio.Application\PdfStudio.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- PDF表示・レンダリング (PDFium ラッパー、MIT) -->
+    <PackageReference Include="PDFtoImage" Version="5.2.1" />
+    <!-- PDF生成・編集 (MIT, .NET 10対応) -->
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
+    <!-- PDFテキスト抽出・検索 (Apache 2.0) -->
+    <PackageReference Include="PdfPig" Version="0.1.14" />
+    <!-- DI・Logging -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+</Project>

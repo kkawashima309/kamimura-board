@@ -1,0 +1,18 @@
+<Application x:Class="PdfStudio.Wpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:PdfStudio.Wpf.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Themes/Light.xaml" />
+                <ResourceDictionary Source="Resources/Themes/Common.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <conv:NullToVisibleConverter x:Key="NullToVisibleConverter" />
+            <conv:NotNullToVisibleConverter x:Key="NotNullToVisibleConverter" />
+            <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

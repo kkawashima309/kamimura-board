@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    このファイルは build-installer.bat 実行時に
+    heat.exe (WiX) によって自動生成・上書きされます。
+    手動で編集しないでください。
+
+    生成内容: publish フォルダー配下の全ファイルを INSTALLFOLDER に配置する Component 定義。
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <ComponentGroup Id="ApplicationComponents" Directory="INSTALLFOLDER">
+      <!-- このノードは heat により自動生成・上書きされます -->
+    </ComponentGroup>
+  </Fragment>
+</Wix>

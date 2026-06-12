@@ -1,0 +1,33 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build results
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+publish/
+
+# NuGet
+*.nupkg
+packages/
+.packages/
+
+# Logs
+*.log
+Logs/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Rider
+.idea/
+
+# tessdata (大きいので別途配置)
+tools/tessdata/*.traineddata

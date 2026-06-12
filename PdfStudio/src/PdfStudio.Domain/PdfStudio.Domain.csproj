@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>PdfStudio.Domain</RootNamespace>
+    <AssemblyName>PdfStudio.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>

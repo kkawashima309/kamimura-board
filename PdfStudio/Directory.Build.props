@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Authors>Kenji Kawashima</Authors>
+    <Company>Kamimura Denki Kogyo Co., Ltd.</Company>
+    <Product>PdfStudio</Product>
+    <Copyright>Copyright (c) 2026</Copyright>
+    <Version>0.5.8</Version>
+    <NeutralLanguage>ja-JP</NeutralLanguage>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    全プロジェクト共通のグローバル using。
+    net10.0-windows SDK では一部の暗黙 using が含まれないため、
+    確実に必要な名前空間を明示する。
+  -->
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.IO" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+  </ItemGroup>
+</Project>

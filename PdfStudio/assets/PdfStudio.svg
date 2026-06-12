@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- 背景の角丸四角 -->
+  <rect x="16" y="16" width="224" height="224" rx="32" fill="#0078D4"/>
+
+  <!-- PDF風の書類アイコン -->
+  <g transform="translate(60, 50)">
+    <!-- 書類本体 -->
+    <path d="M 0 10 L 0 146 Q 0 156 10 156 L 126 156 Q 136 156 136 146 L 136 40 L 96 0 L 10 0 Q 0 0 0 10 Z"
+          fill="#FFFFFF"/>
+    <!-- 折り返し角 -->
+    <path d="M 96 0 L 96 30 Q 96 40 106 40 L 136 40 Z"
+          fill="#E0E0E0"/>
+
+    <!-- PDF文字 -->
+    <text x="68" y="100"
+          font-family="Arial, sans-serif"
+          font-size="32"
+          font-weight="bold"
+          text-anchor="middle"
+          fill="#0078D4">PDF</text>
+  </g>
+
+  <!-- 編集ペン (右下) -->
+  <g transform="translate(150, 150) rotate(-45)">
+    <rect x="0" y="0" width="60" height="14" rx="2" fill="#FFB300"/>
+    <polygon points="60,0 78,7 60,14" fill="#FFD54F"/>
+    <rect x="0" y="0" width="8" height="14" fill="#5D4037"/>
+  </g>
+</svg>

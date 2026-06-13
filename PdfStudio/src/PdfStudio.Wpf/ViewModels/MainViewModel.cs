@@ -731,8 +731,14 @@ public partial class MainViewModel : ObservableObject
     private void ShowAbout()
     {
         var msg =
-            "PdfStudio v0.5.8\n\n" +
+            "PdfStudio v0.5.9\n\n" +
             "Windows向け PDF 編集ツール\n" +
+            "\n" +
+            "v0.5.9 重要修正:\n" +
+            "  - スタンプ・付箋(コメント)・ウォーターマーク・ページ番号・\n" +
+            "    ヘッダー/フッターの文字描画が「使用可能なフォントが\n" +
+            "    見つかりません」で必ず失敗していた問題を解決\n" +
+            "    (PDFsharpのフォントリゾルバを起動時に構成)\n" +
             "\n" +
             "v0.5.8 重要修正:\n" +
             "  - ページ削除・並び替え後の保存で、意図しないページが\n" +

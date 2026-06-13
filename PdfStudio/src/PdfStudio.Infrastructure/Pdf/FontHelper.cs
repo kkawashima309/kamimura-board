@@ -32,6 +32,10 @@ internal static class FontHelper
     /// </summary>
     public static XFont Create(double size, bool bold = false)
     {
+        // PDFsharp のフォントリゾルバを確実に構成してから生成する。
+        // (未構成だと全候補が解決できず例外になる)
+        PdfFontSetup.EnsureConfigured();
+
         var style = bold ? XFontStyleEx.Bold : XFontStyleEx.Regular;
 
         foreach (var name in Candidates)

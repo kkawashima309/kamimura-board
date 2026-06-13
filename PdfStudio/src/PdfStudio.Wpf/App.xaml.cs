@@ -31,6 +31,10 @@ public partial class App : System.Windows.Application
         AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
+        // PDFsharp のフォント解決を起動時に構成する。
+        // (未構成だとスタンプ・付箋・ウォーターマーク等の文字描画が例外で失敗する)
+        PdfStudio.Infrastructure.Pdf.PdfFontSetup.EnsureConfigured();
+
         // Serilog 設定
         var logDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

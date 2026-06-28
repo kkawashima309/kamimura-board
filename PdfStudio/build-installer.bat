@@ -12,7 +12,7 @@ cd /d "%~dp0"
 
 echo.
 echo ============================================================
-echo   PdfStudio v0.5 - Auto Build Script (.NET 10)
+echo   PdfStudio v0.9 - Auto Build Script (.NET 10)
 echo ============================================================
 echo.
 
@@ -106,6 +106,21 @@ if exist "%~dp0tools" (
     ) else (
         echo   OK: tools folder copied to publish output
     )
+)
+
+REM ---------- Ensure bundled font is in publish output (critical for Japanese text) ----------
+set "FONT_SRC=%~dp0src\PdfStudio.Wpf\Resources\Fonts\NotoSansJP-Regular.ttf"
+if exist "%FONT_SRC%" (
+    echo   Copying bundled Japanese font...
+    if not exist "%PUBLISH_DIR%\Resources\Fonts" mkdir "%PUBLISH_DIR%\Resources\Fonts"
+    copy /Y "%FONT_SRC%" "%PUBLISH_DIR%\Resources\Fonts\" >nul
+    if errorlevel 1 (
+        echo   Warning: failed to copy font - Japanese text may not work
+    ) else (
+        echo   OK: bundled font copied to publish output
+    )
+) else (
+    echo   Warning: bundled font not found at %FONT_SRC%
 )
 echo.
 

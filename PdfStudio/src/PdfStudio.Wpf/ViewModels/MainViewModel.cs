@@ -21,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IPdfSecurityService _security;
     private readonly IPdfSearchService _searchService;
     private readonly IPdfAnnotationService _annotationService;
+    private readonly IPdfOcrService _ocrService;
     private readonly PdfStudio.Infrastructure.Pdf.BatchService _batchService;
     private readonly IRecentFilesService _recentFilesService;
     private readonly IDialogService _dialog;
@@ -66,6 +67,7 @@ public partial class MainViewModel : ObservableObject
         IPdfSecurityService security,
         IPdfSearchService searchService,
         IPdfAnnotationService annotationService,
+        IPdfOcrService ocrService,
         PdfStudio.Infrastructure.Pdf.BatchService batchService,
         IRecentFilesService recentFiles,
         IDialogService dialog,
@@ -78,6 +80,7 @@ public partial class MainViewModel : ObservableObject
         _security = security;
         _searchService = searchService;
         _annotationService = annotationService;
+        _ocrService = ocrService;
         _batchService = batchService;
         _recentFilesService = recentFiles;
         _dialog = dialog;
@@ -100,79 +103,13 @@ public partial class MainViewModel : ObservableObject
         foreach (var d in OpenDocuments)
             d.IsActive = ReferenceEquals(d, value);
 
-        NotifyDocumentCommandsCanExecuteChanged();
-    }
-
-    // CurrentPage の変化(ページ移動)に応じてナビゲーション系コマンドの
-    // 活性状態を更新するため、アクティブドキュメントの変更を購読する
-    partial void OnActiveDocumentChanged(
-        PdfDocumentViewModel? oldValue, PdfDocumentViewModel? newValue)
-    {
-        if (oldValue is not null)
-            oldValue.PropertyChanged -= OnActiveDocumentPropertyChanged;
-        if (newValue is not null)
-            newValue.PropertyChanged += OnActiveDocumentPropertyChanged;
-    }
-
-    private void OnActiveDocumentPropertyChanged(
-        object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(PdfDocumentViewModel.CurrentPage))
-            NotifyPageCommandsCanExecuteChanged();
-    }
-
-    /// <summary>
-    /// アクティブドキュメントの有無に依存する全コマンドの活性状態を更新する。
-    /// CommunityToolkit の RelayCommand は WPF の CommandManager と連動しないため、
-    /// 明示的に通知しないとメニュー・ツールバーが灰色のまま残る。
-    /// </summary>
-    private void NotifyDocumentCommandsCanExecuteChanged()
-    {
         SaveCommand.NotifyCanExecuteChanged();
         SaveAsCommand.NotifyCanExecuteChanged();
         CloseTabCommand.NotifyCanExecuteChanged();
-        SetPasswordCommand.NotifyCanExecuteChanged();
-        PrintCommand.NotifyCanExecuteChanged();
-        GoToPageCommand.NotifyCanExecuteChanged();
-        ZoomInCommand.NotifyCanExecuteChanged();
-        ZoomOutCommand.NotifyCanExecuteChanged();
-        ZoomActualCommand.NotifyCanExecuteChanged();
-        ZoomFitPageCommand.NotifyCanExecuteChanged();
-        ZoomFitWidthCommand.NotifyCanExecuteChanged();
-        InsertPagesFromFileCommand.NotifyCanExecuteChanged();
-        ExtractPagesCommand.NotifyCanExecuteChanged();
-        InsertBlankPageCommand.NotifyCanExecuteChanged();
-        EditPropertiesCommand.NotifyCanExecuteChanged();
-        ShowPropertiesCommand.NotifyCanExecuteChanged();
-        AddWatermarkCommand.NotifyCanExecuteChanged();
-        AddPageNumbersCommand.NotifyCanExecuteChanged();
-        AddHeaderFooterCommand.NotifyCanExecuteChanged();
-        ExportPageAsImageCommand.NotifyCanExecuteChanged();
-        AddStampCommand.NotifyCanExecuteChanged();
-        AddStickyNoteCommand.NotifyCanExecuteChanged();
-        ExecuteSearchCommand.NotifyCanExecuteChanged();
-        NotifySearchResultCommandsCanExecuteChanged();
-        NotifyPageCommandsCanExecuteChanged();
-    }
-
-    /// <summary>
-    /// 現在ページ(CurrentPage)に依存するコマンドの活性状態を更新する。
-    /// </summary>
-    private void NotifyPageCommandsCanExecuteChanged()
-    {
         DeletePageCommand.NotifyCanExecuteChanged();
         RotatePageLeftCommand.NotifyCanExecuteChanged();
         RotatePageRightCommand.NotifyCanExecuteChanged();
-        FirstPageCommand.NotifyCanExecuteChanged();
-        LastPageCommand.NotifyCanExecuteChanged();
-        PrevPageCommand.NotifyCanExecuteChanged();
-        NextPageCommand.NotifyCanExecuteChanged();
-    }
-
-    private void NotifySearchResultCommandsCanExecuteChanged()
-    {
-        NextSearchResultCommand.NotifyCanExecuteChanged();
-        PrevSearchResultCommand.NotifyCanExecuteChanged();
+        SetPasswordCommand.NotifyCanExecuteChanged();
     }
 
     private void LoadRecentFiles()
@@ -253,8 +190,7 @@ public partial class MainViewModel : ObservableObject
             _logger.LogError(ex, "PDFオープン失敗: {Path}", filePath);
 
             // パスワード付きの場合は再試行
-            // (レンダラーが例外をラップするため、内部例外も含めて判定する)
-            if (IsPasswordProtectedError(ex))
+            if (ex.Message.Contains("password", StringComparison.OrdinalIgnoreCase))
             {
                 var pwd = PasswordPromptDialog.Prompt("このPDFはパスワードで保護されています。");
                 if (!string.IsNullOrEmpty(pwd))
@@ -315,14 +251,7 @@ public partial class MainViewModel : ObservableObject
             IsBusy = true;
             await _editor.SaveAsync(ActiveDocument.Document);
             ActiveDocument.IsModified = false;
-            var savedName = ActiveDocument.Document.FileName;
-
-            // 保存によりファイル実体が変わったため、Domain状態(回転・並び順)と
-            // レンダラーのキャッシュを保存後のファイルから作り直す。
-            // これを行わないと、続けて保存したときに回転が二重適用される。
-            await ReloadActiveDocumentAsync();
-
-            StatusMessage = $"保存しました: {savedName}";
+            StatusMessage = $"保存しました: {ActiveDocument.Document.FileName}";
         }
         catch (Exception ex)
         {
@@ -375,11 +304,6 @@ public partial class MainViewModel : ObservableObject
             _recentFilesService.Add(path);
             LoadRecentFiles();
             ActiveDocument.IsModified = false;
-
-            // 保存後のファイルを正として開き直す(回転の二重適用防止と
-            // プレビュー一時PDF→正式ファイルへのタブ切替を兼ねる)
-            await ReloadActiveDocumentAsync();
-
             StatusMessage = $"保存しました: {Path.GetFileName(path)}";
         }
         catch (Exception ex)
@@ -417,25 +341,6 @@ public partial class MainViewModel : ObservableObject
     }
 
     private bool HasActiveDocument() => ActiveDocument is not null;
-
-    /// <summary>
-    /// 例外チェーン全体を見て「パスワード保護による失敗」かどうかを判定する。
-    /// PdfiumRenderer は元の例外を InvalidOperationException でラップするため、
-    /// 最上位の Message だけを見ると判定できない。
-    /// </summary>
-    private static bool IsPasswordProtectedError(Exception ex)
-    {
-        for (Exception? e = ex; e is not null; e = e.InnerException)
-        {
-            if (e.GetType().Name.Contains("Password", StringComparison.OrdinalIgnoreCase)
-                || e.Message.Contains("password", StringComparison.OrdinalIgnoreCase)
-                || e.Message.Contains("パスワード", StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 
     // ---------------------- Page Operations ----------------------
 
@@ -667,23 +572,9 @@ public partial class MainViewModel : ObservableObject
         try
         {
             IsBusy = true;
-
-            // まず一時ファイルへ保存（最新の編集を反映）。
-            // SaveAsync は document.FilePath を保存先に書き換えるため、
-            // 元のパスを退避し、暗号化後に必ず復元する。
-            // (復元しないと以後の上書き保存が削除済み一時ファイルを指して失敗する)
-            var originalFilePath = ActiveDocument.Document.FilePath;
-            var wasModified = ActiveDocument.Document.IsModified;
-            var tempInput = CreateTempPdfPath();
-            try
-            {
-                await _editor.SaveAsync(ActiveDocument.Document, tempInput);
-            }
-            finally
-            {
-                ActiveDocument.Document.FilePath = originalFilePath;
-                ActiveDocument.Document.IsModified = wasModified;
-            }
+            // まず保存（最新の編集を反映）
+            var tempInput = Path.GetTempFileName() + ".pdf";
+            await _editor.SaveAsync(ActiveDocument.Document, tempInput);
 
             await _security.EncryptAsync(
                 tempInput, output,
@@ -731,28 +622,55 @@ public partial class MainViewModel : ObservableObject
     private void ShowAbout()
     {
         var msg =
-            "PdfStudio v0.5.9\n\n" +
+            "PdfStudio v0.9.1\n\n" +
             "Windows向け PDF 編集ツール\n" +
             "\n" +
-            "v0.5.9 重要修正:\n" +
-            "  - スタンプ・付箋(コメント)・ウォーターマーク・ページ番号・\n" +
-            "    ヘッダー/フッターの文字描画が「使用可能なフォントが\n" +
-            "    見つかりません」で必ず失敗していた問題を解決\n" +
-            "    (PDFsharpのフォントリゾルバを起動時に構成)\n" +
+            "v0.9.1 重要修正(スタンプ・付箋ほか文字描画):\n" +
+            "  - 日本語フォントをアプリ本体(アセンブリ)に埋め込み。\n" +
+            "    exe単体を別フォルダへ移動してもスタンプ・付箋・\n" +
+            "    ウォーターマーク等が「フォントが見つかりません」で\n" +
+            "    失敗しないようにした\n" +
+            "  - オーナーパスワードのみ(閲覧可・編集制限)のPDFに対し、\n" +
+            "    スタンプ・付箋・ウォーターマーク・ページ番号・\n" +
+            "    ヘッダー/フッターが「owner password required」で\n" +
+            "    必ず失敗していた問題を解決(編集可能なコピーを構築)\n" +
             "\n" +
-            "v0.5.8 重要修正:\n" +
-            "  - ページ削除・並び替え後の保存で、意図しないページが\n" +
-            "    削除・出力される致命的不具合を解決(SourceIndex方式)\n" +
-            "  - 削除・並び替え直後の画面表示が実際の内容とずれる問題を解決\n" +
-            "  - 保存を連続実行すると回転が二重適用される問題を解決\n" +
-            "  - パスワード設定後に上書き保存が必ず失敗する問題を解決\n" +
-            "  - パスワード保護されたPDFを開く際にパスワード入力画面が\n" +
-            "    表示されない問題を解決\n" +
-            "  - PDFを開いた後もメニュー・ツールバーの一部が\n" +
-            "    無効(灰色)のままになる問題を解決\n" +
-            "  - 未保存PDFからのページ抽出時のエラー処理を改善\n" +
+            "v0.9.0 OCR前処理を強化(実証スクリプトのノウハウ移植):\n" +
+            "  - 400 DPI に向上(従来300)\n" +
+            "  - 二値化を含む画像前処理\n" +
+            "    (グレースケール→コントラスト→シャープ→二値化)\n" +
+            "  - PSM=6(単一テキストブロック)を設定\n" +
+            "  - 細かい文字・数字の多い帳票の認識率を改善\n" +
             "\n" +
-            "v0.5.7 重要修正 (静的検証済み):\n" +
+            "v0.8.0 OCR品質を大幅改善:\n" +
+            "  - Tesseract内蔵PDF生成を採用\n" +
+            "    文字の正確な位置に透明テキスト層を埋め込み\n" +
+            "    (従来の文字化け・位置ずれを解消)\n" +
+            "  - 複数言語 jpn+eng に対応\n" +
+            "    日本語と英数字(品番・型式)の混在を高精度認識\n" +
+            "\n" +
+            "v0.7.0 OCR機能を再実装:\n" +
+            "  - スキャンPDFを検索可能なテキスト付きPDFに変換\n" +
+            "  - TesseractOCR 5.5.2 (オープンソース)使用\n" +
+            "  - tools/tessdata に言語ファイル配置で利用可能\n" +
+            "  - 透明テキスト層に同梱フォントを使用(日本語OK)\n" +
+            "\n" +
+            "v0.6.0 日本語フォント問題を根本解決:\n" +
+            "  - 原因特定: PDFsharpは.ttc(游ゴシック等Windows標準和文)を\n" +
+            "    扱えないため全描画が失敗していた\n" +
+            "  - 解決: Noto Sans JP(TrueType)を同梱し環境非依存に\n" +
+            "    (SIL Open Font License、商用利用可)\n" +
+            "  - スタンプ/ウォーターマーク/ページ番号/付箋等で\n" +
+            "    日本語が確実に描画されるように\n" +
+            "\n" +
+            "v0.5.9 修正:\n" +
+            "  - FontResolver を実装・登録\n" +
+            "    PDFsharp 6.x はフォント解決機構の登録が必須で、\n" +
+            "    これが無いと全ての文字描画が「フォントが見つかりません」\n" +
+            "    で失敗していた(スタンプ/ウォーターマーク/ページ番号等)\n" +
+            "  - Windowsのフォントフォルダから日本語フォントを直接読込\n" +
+            "\n" +
+            "v0.5.7 修正:\n" +
             "  - 日本語フォント対応: スタンプ「承認」等の日本語描画が\n" +
             "    Arialフォント起因で必ず失敗していた問題を解決\n" +
             "  - 保存フロー修正: プレビュー後の保存が「元PDFが見つからない」\n" +
@@ -900,11 +818,11 @@ public partial class MainViewModel : ObservableObject
     {
         if (ActiveDocument == null) return;
 
-        // 元PDFのパスを先に確定しておく(未保存ならエラー)
-        var sourceFilePath = ActiveDocument.Document.FilePath;
-        if (string.IsNullOrEmpty(sourceFilePath) || !File.Exists(sourceFilePath))
+        // FilePath が空の場合は先に保存を促す(抽出元として必要)
+        var srcPath = ActiveDocument.Document.FilePath;
+        if (string.IsNullOrEmpty(srcPath) || !File.Exists(srcPath))
         {
-            _dialog.ShowError("先にPDFを保存してから実行してください。", "エラー");
+            _dialog.ShowError("先にPDFを保存してから抽出してください。", "エラー");
             return;
         }
 
@@ -937,12 +855,12 @@ public partial class MainViewModel : ObservableObject
             StatusMessage = $"{indices.Count}ページを抽出中...";
 
             // 元ファイル名を先に記憶(タブ切替後はFilePathが変わるため)
-            var sourceBaseName = Path.GetFileNameWithoutExtension(sourceFilePath);
+            var sourceBaseName = Path.GetFileNameWithoutExtension(srcPath);
 
             // 一時ファイルに抽出
             var tempPath = CreateTempPdfPath();
             await _editor.ExtractPagesAsync(
-                sourceFilePath,
+                srcPath,
                 indices,
                 tempPath);
 
@@ -1222,10 +1140,6 @@ public partial class MainViewModel : ObservableObject
         var docId = ActiveDocument.Document.Id;
         OpenDocuments.Remove(ActiveDocument);
         _renderer.Close(docId);
-
-        // 古いドキュメントインスタンスを対象とするUndo履歴は無効になるため破棄
-        _undoStack.Clear();
-
         await OpenFromPathAsync(path);
     }
 
@@ -1522,7 +1436,7 @@ public partial class MainViewModel : ObservableObject
             // パネルを閉じるときは結果もクリア
             SearchResults.Clear();
             SearchResultIndex = -1;
-            NotifySearchResultCommandsCanExecuteChanged();
+            ActiveDocument?.PageHighlights.Clear();
         }
     }
 
@@ -1553,7 +1467,6 @@ public partial class MainViewModel : ObservableObject
             SearchResults.Clear();
             foreach (var r in results)
                 SearchResults.Add(r);
-            NotifySearchResultCommandsCanExecuteChanged();
 
             if (SearchResults.Count > 0)
             {
@@ -1620,6 +1533,44 @@ public partial class MainViewModel : ObservableObject
         if (result.PageIndex >= 0 && result.PageIndex < ActiveDocument.Document.PageCount)
         {
             await ActiveDocument.ShowPageAsync(result.PageIndex);
+            UpdatePageHighlights(index);
+        }
+    }
+
+    /// <summary>
+    /// 指定の検索ヒットが属するページについて、そのページ内の全ヒットを
+    /// ハイライト矩形として ActiveDocument.PageHighlights に反映する。
+    /// 指定ヒットのみ IsSelected=true になる(選択中の色分け用)。
+    /// </summary>
+    private void UpdatePageHighlights(int selectedResultIndex)
+    {
+        if (ActiveDocument is null) return;
+        if (selectedResultIndex < 0 || selectedResultIndex >= SearchResults.Count)
+        {
+            ActiveDocument.PageHighlights.Clear();
+            return;
+        }
+
+        var pageIndex = SearchResults[selectedResultIndex].PageIndex;
+
+        ActiveDocument.PageHighlights.Clear();
+        for (int i = 0; i < SearchResults.Count; i++)
+        {
+            var result = SearchResults[i];
+            if (result.PageIndex != pageIndex) continue;
+
+            var isSelected = i == selectedResultIndex;
+            foreach (var box in result.Highlights)
+            {
+                ActiveDocument.PageHighlights.Add(new PageHighlightViewModel
+                {
+                    Left = box.Left,
+                    Top = box.Top,
+                    Width = box.Width,
+                    Height = box.Height,
+                    IsSelected = isSelected,
+                });
+            }
         }
     }
 
@@ -2013,6 +1964,73 @@ public partial class MainViewModel : ObservableObject
             _logger.LogError(ex, "付箋追加失敗");
             _dialog.ShowError(
                 $"付箋追加に失敗しました。\n\nエラー: {ex.GetType().Name}\nメッセージ: {ex.Message}",
+                "エラー");
+        }
+        finally { IsBusy = false; }
+    }
+
+    // ==================== v0.7 OCR ====================
+
+    [RelayCommand(CanExecute = nameof(HasActiveDocument))]
+    private async Task PerformOcrAsync()
+    {
+        if (ActiveDocument is null) return;
+        var srcPath = ActiveDocument.Document.FilePath;
+        if (string.IsNullOrEmpty(srcPath) || !File.Exists(srcPath))
+        {
+            _dialog.ShowError("先にPDFを保存してからOCRを実行してください。", "エラー");
+            return;
+        }
+
+        // 使用可能な言語を確認
+        var availableLangs = _ocrService.GetAvailableLanguages();
+        if (availableLangs.Count == 0)
+        {
+            _dialog.ShowError(
+                "OCR言語データが見つかりません。\n\n" +
+                "インストール先の tools\\tessdata フォルダに言語ファイル(.traineddata)を配置してください。\n\n" +
+                "ダウンロード元:\n" +
+                "https://github.com/tesseract-ocr/tessdata\n\n" +
+                "日本語: jpn.traineddata\n" +
+                "英語: eng.traineddata",
+                "OCR言語データ未配置");
+            return;
+        }
+
+        var defaultLang = (availableLangs.Contains("jpn") && availableLangs.Contains("eng")) ? "jpn+eng"
+            : availableLangs.Contains("jpn") ? "jpn"
+            : availableLangs.Contains("eng") ? "eng"
+            : availableLangs[0];
+        var availableMsg = "使用可能: " + string.Join(", ", availableLangs);
+        var lang = _dialog.ShowInputDialog(
+            $"OCR言語コードを入力\n" +
+            $"・日本語と英数字の混在なら jpn+eng を推奨\n" +
+            $"・{availableMsg}",
+            "OCR言語選択",
+            defaultLang);
+        if (string.IsNullOrEmpty(lang)) return;
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = "OCR処理中... ページ数が多いと時間がかかります";
+
+            var tempPath = CreateTempPdfPath();
+            await _ocrService.PerformOcrAsync(srcPath, tempPath, lang);
+
+            await ReplaceActiveDocumentWithTempAsync(tempPath, "OCR処理済み");
+            StatusMessage = "[反映済み] OCR完了。Ctrl+F で文字検索できます。Ctrl+Shift+S で保存。";
+            _dialog.ShowInfo(
+                "OCR処理が完了しました。\n\n" +
+                "・Ctrl+F でテキスト検索が可能になりました\n" +
+                "・結果を保存するには Ctrl+Shift+S を押してください",
+                "OCR完了");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OCR失敗");
+            _dialog.ShowError(
+                $"OCRに失敗しました。\n\nエラー: {ex.GetType().Name}\nメッセージ: {ex.Message}",
                 "エラー");
         }
         finally { IsBusy = false; }

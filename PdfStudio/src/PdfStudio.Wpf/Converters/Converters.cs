@@ -46,3 +46,21 @@ public class CountToVisibilityConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => Binding.DoNothing;
 }
+
+/// <summary>
+/// 比率(0.0〜1.0)×実サイズ(px) → ピクセル値。
+/// 検索ハイライト矩形を、表示中のページImageの実サイズに合わせて配置するために使う。
+/// values[0]: 比率(double), values[1]: 基準サイズ(double, 例: Image.ActualWidth)
+/// </summary>
+public class FractionToPixelConverter : IMultiValueConverter
+{
+    public object Convert(object?[] values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values.Length < 2 || values[0] is not double fraction || values[1] is not double size)
+            return 0.0;
+        return fraction * size;
+    }
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

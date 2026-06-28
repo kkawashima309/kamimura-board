@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
@@ -34,9 +34,19 @@
     <Resource Include="Resources\Licenses\**\*.md" />
   </ItemGroup>
 
+  <!-- 同梱日本語フォント(Noto Sans JP)を publish 出力にコピー -->
+  <!-- PDFsharp は .ttc を扱えないため、.otf を同梱して環境非依存にする -->
+  <ItemGroup>
+    <None Include="Resources\Fonts\NotoSansJP-Regular.ttf">
+      <Link>Resources\Fonts\NotoSansJP-Regular.ttf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <!-- tools/tessdata フォルダを publish 出力にコピー (将来のOCR用) -->
   <ItemGroup>
-    <None Include="..\..\tools\**\*.*" Exclude="..\..\tools\**\*.tmp;..\..\tools\**\.DS_Store">
+    <None Include="..\..\tools\**\*.*" Exclude="..\..\tools\**\*.tmp;..\..\tools\**\.DS_Store;..\..\tools\tessdata\backup_standard\**\*.*">
       <Link>tools\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

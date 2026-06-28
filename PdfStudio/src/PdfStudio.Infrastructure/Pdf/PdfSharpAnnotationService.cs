@@ -42,7 +42,15 @@ public sealed class PdfSharpAnnotationService : IPdfAnnotationService
             if (!File.Exists(sourceFilePath))
                 throw new FileNotFoundException("元PDFが見つかりません。", sourceFilePath);
 
-            using var pdfDoc = PdfReader.Open(sourceFilePath, PdfDocumentOpenMode.Modify);
+            // 編集制限(オーナーPWのみ)のPDFでも注釈できるよう、必要なら
+            // 編集可能なコピーを構築して開く。
+            using var pdfDoc = PdfDocumentOpener.OpenForEdit(sourceFilePath, out var rebuilt);
+            if (rebuilt)
+            {
+                _logger.LogInformation(
+                    "編集制限PDFのため編集可能なコピーを作成して注釈を適用します: {Src}",
+                    sourceFilePath);
+            }
             int annCount = 0;
 
             foreach (var opt in annotations)

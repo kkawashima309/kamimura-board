@@ -13,6 +13,7 @@
             <conv:NullToVisibleConverter x:Key="NullToVisibleConverter" />
             <conv:NotNullToVisibleConverter x:Key="NotNullToVisibleConverter" />
             <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+            <conv:FractionToPixelConverter x:Key="FractionToPixelConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

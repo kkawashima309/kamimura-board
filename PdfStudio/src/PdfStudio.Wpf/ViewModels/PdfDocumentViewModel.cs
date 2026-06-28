@@ -33,6 +33,13 @@ public partial class PdfDocumentViewModel : ObservableObject
     private bool _isPageLoading;
 
     /// <summary>
+    /// 現在表示中のページに対する検索ヒットのハイライト矩形。
+    /// ページが切り替わるたびに ShowPageAsync 冒頭でクリアされる。
+    /// </summary>
+    [ObservableProperty]
+    private ObservableCollection<PageHighlightViewModel> _pageHighlights = new();
+
+    /// <summary>
     /// ズームモード（ユーザーが選択したモード）
     /// </summary>
     [ObservableProperty]
@@ -118,6 +125,10 @@ public partial class PdfDocumentViewModel : ObservableObject
     public async Task ShowPageAsync(int pageIndex, CancellationToken ct = default)
     {
         if (pageIndex < 0 || pageIndex >= Pages.Count) return;
+
+        // ページを切り替えるので、前のページのハイライトは無効になる。
+        // 検索ジャンプの場合は呼び出し側(MainViewModel)がこの直後に再設定する。
+        PageHighlights.Clear();
 
         try
         {

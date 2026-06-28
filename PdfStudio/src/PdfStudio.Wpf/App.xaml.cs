@@ -31,10 +31,6 @@ public partial class App : System.Windows.Application
         AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-        // PDFsharp のフォント解決を起動時に構成する。
-        // (未構成だとスタンプ・付箋・ウォーターマーク等の文字描画が例外で失敗する)
-        PdfStudio.Infrastructure.Pdf.PdfFontSetup.EnsureConfigured();
-
         // Serilog 設定
         var logDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -48,6 +44,23 @@ public partial class App : System.Windows.Application
                 retainedFileCountLimit: 14)
             .WriteTo.Console()
             .CreateLogger();
+
+        // PDFsharp 6.x のフォント解決機構を登録する。
+        // これがないと XFont 生成が全て失敗し、スタンプ・ウォーターマーク等が
+        // 「使用可能なフォントが見つかりません」で必ずエラーになる。
+        try
+        {
+            PdfStudio.Infrastructure.Pdf.WindowsFontResolver.Register();
+            Log.Information(
+                "FontResolver登録完了: 既定フォント={Face}, 利用可={Has}, 詳細={Diag}",
+                PdfStudio.Infrastructure.Pdf.WindowsFontResolver.DefaultFaceName,
+                PdfStudio.Infrastructure.Pdf.WindowsFontResolver.HasUsableFont,
+                PdfStudio.Infrastructure.Pdf.WindowsFontResolver.DiagnosticInfo);
+        }
+        catch (Exception fontEx)
+        {
+            Log.Error(fontEx, "FontResolver登録に失敗");
+        }
 
         Host = Microsoft.Extensions.Hosting.Host
             .CreateDefaultBuilder()

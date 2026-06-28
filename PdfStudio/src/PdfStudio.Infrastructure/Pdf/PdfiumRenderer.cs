@@ -120,7 +120,6 @@ public sealed class PdfiumRenderer : IPdfRenderer
                     doc.Pages.Add(new PdfPage
                     {
                         Index = i,
-                        SourceIndex = i,
                         Width = w,
                         Height = h,
                         Rotation = 0,
@@ -171,19 +170,12 @@ public sealed class PdfiumRenderer : IPdfRenderer
 
         _docPasswords.TryGetValue(documentId, out var password);
 
-        // 該当ページの Rotation を取得して、PdfRotation に変換。
-        // pageIndex は「現在の表示位置」なので、キャッシュ済みバイト列(元ファイル)
-        // のどのページを描画するかは SourceIndex で解決する。
-        // (削除・並び替え後もキャッシュは元ファイルのままであるため)
-        var sourcePageIndex = pageIndex;
+        // 該当ページの Rotation を取得して、PdfRotation に変換
         var pdfRotation = PdfRotation.Rotate0;
         if (_docs.TryGetValue(documentId, out var doc)
             && pageIndex >= 0 && pageIndex < doc.Pages.Count)
         {
-            var page = doc.Pages[pageIndex];
-            if (page.SourceIndex >= 0)
-                sourcePageIndex = page.SourceIndex;
-            pdfRotation = page.Rotation switch
+            pdfRotation = doc.Pages[pageIndex].Rotation switch
             {
                 90 => PdfRotation.Rotate90,
                 180 => PdfRotation.Rotate180,
@@ -200,7 +192,7 @@ public sealed class PdfiumRenderer : IPdfRenderer
                 using var bitmap = Conversion.ToImage(
                     bytes,
                     password: password,
-                    page: sourcePageIndex,
+                    page: pageIndex,
                     options: new RenderOptions(Dpi: dpi, Rotation: pdfRotation));
 
                 using var data = bitmap.Encode(SKEncodedImageFormat.Png, 100);

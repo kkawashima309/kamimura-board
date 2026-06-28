@@ -8,7 +8,7 @@
     <Company>Kamimura Denki Kogyo Co., Ltd.</Company>
     <Product>PdfStudio</Product>
     <Copyright>Copyright (c) 2026</Copyright>
-    <Version>0.5.9</Version>
+    <Version>0.9.1</Version>
     <NeutralLanguage>ja-JP</NeutralLanguage>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors>nullable</WarningsAsErrors>

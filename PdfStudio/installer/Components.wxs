@@ -1,15 +1,972 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    このファイルは build-installer.bat 実行時に
-    heat.exe (WiX) によって自動生成・上書きされます。
-    手動で編集しないでください。
-
-    生成内容: publish フォルダー配下の全ファイルを INSTALLFOLDER に配置する Component 定義。
--->
+<!-- 縺薙・繝輔ぃ繧､繝ｫ縺ｯ build-installer.bat 縺ｫ繧医ｊ閾ｪ蜍慕函謌舌＆繧後∪縺吶よ焔蜍慕ｷｨ髮・＠縺ｪ縺・〒縺上□縺輔＞縲・-->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Fragment>
-    <ComponentGroup Id="ApplicationComponents" Directory="INSTALLFOLDER">
-      <!-- このノードは heat により自動生成・上書きされます -->
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Directory Id="Dir_0001_Resources" Name="Resources">
+        <Directory Id="Dir_0005_Fonts" Name="Fonts">
+        </Directory>
+      </Directory>
+      <Directory Id="Dir_0002_tools" Name="tools">
+        <Directory Id="Dir_0006_tessdata" Name="tessdata">
+          <Directory Id="Dir_0007_backup_standard" Name="backup_standard">
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="Dir_0003_x64" Name="x64">
+      </Directory>
+      <Directory Id="Dir_0004_x86" Name="x86">
+      </Directory>
+    </DirectoryRef>
+    <ComponentGroup Id="ApplicationComponents">
+      <Component Id="Cmp_00001" Directory="INSTALLFOLDER" Guid="3AF81CE2-0D60-483B-AC66-84CB17C1E0B3" Bitness="always64">
+        <File Id="Fil_00001" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Accessibility.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00002" Directory="INSTALLFOLDER" Guid="B853E76A-64DC-4B0E-8FF0-950380054E7F" Bitness="always64">
+        <File Id="Fil_00002" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\clretwrc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00003" Directory="INSTALLFOLDER" Guid="2CB44D1B-BD33-4953-A17B-F99A39EAAEB8" Bitness="always64">
+        <File Id="Fil_00003" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\clrgc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00004" Directory="INSTALLFOLDER" Guid="05241126-BBD9-4A7D-B62F-52F3FC07C9E8" Bitness="always64">
+        <File Id="Fil_00004" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\clrgcexp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00005" Directory="INSTALLFOLDER" Guid="0405CD79-33D1-4126-82B4-253EF6D7FF88" Bitness="always64">
+        <File Id="Fil_00005" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\clrjit.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00006" Directory="INSTALLFOLDER" Guid="87393B5B-7B29-4E7C-849B-77CD31FB8AB1" Bitness="always64">
+        <File Id="Fil_00006" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\CommunityToolkit.Mvvm.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00007" Directory="INSTALLFOLDER" Guid="C224A85B-7DAA-4C15-83A5-1619BB5DBA50" Bitness="always64">
+        <File Id="Fil_00007" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\coreclr.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00008" Directory="INSTALLFOLDER" Guid="A0CB4F1F-A5EC-4161-9C24-996048E6F4BC" Bitness="always64">
+        <File Id="Fil_00008" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\createdump.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00009" Directory="INSTALLFOLDER" Guid="97D6875C-8BEE-4026-AE23-7A47CED7FFD1" Bitness="always64">
+        <File Id="Fil_00009" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\D3DCompiler_47_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00010" Directory="INSTALLFOLDER" Guid="811674C6-B697-47FC-BE79-D094C08206EE" Bitness="always64">
+        <File Id="Fil_00010" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\DirectWriteForwarder.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00011" Directory="INSTALLFOLDER" Guid="95301EB7-533B-49CB-8436-E1E77952F1EB" Bitness="always64">
+        <File Id="Fil_00011" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\hostfxr.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00012" Directory="INSTALLFOLDER" Guid="723D8E78-182A-42AF-9261-920325F7FF25" Bitness="always64">
+        <File Id="Fil_00012" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\hostpolicy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00013" Directory="INSTALLFOLDER" Guid="CE1878B6-53D2-4DD6-87C2-BB7AAF157584" Bitness="always64">
+        <File Id="Fil_00013" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\libSkiaSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00014" Directory="INSTALLFOLDER" Guid="CCF38AE9-BEDE-463B-800B-6195445ED8F2" Bitness="always64">
+        <File Id="Fil_00014" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\libSkiaSharp.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00015" Directory="INSTALLFOLDER" Guid="47558538-E52E-405C-B07E-B7E3F0CC62C9" Bitness="always64">
+        <File Id="Fil_00015" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.CSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00016" Directory="INSTALLFOLDER" Guid="BC3670DC-3041-468A-98AE-05412B7530AD" Bitness="always64">
+        <File Id="Fil_00016" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.DiaSymReader.Native.amd64.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00017" Directory="INSTALLFOLDER" Guid="069F54B6-3E7C-43A7-8A62-5231625AC251" Bitness="always64">
+        <File Id="Fil_00017" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00018" Directory="INSTALLFOLDER" Guid="6D57EB8C-77AF-431B-B781-977FAD9FF4DC" Bitness="always64">
+        <File Id="Fil_00018" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.Binder.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00019" Directory="INSTALLFOLDER" Guid="8CA752AF-BE7A-4583-9517-F95F1460784A" Bitness="always64">
+        <File Id="Fil_00019" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.CommandLine.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00020" Directory="INSTALLFOLDER" Guid="9C360AD0-6391-4439-86F4-0623E07ED502" Bitness="always64">
+        <File Id="Fil_00020" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00021" Directory="INSTALLFOLDER" Guid="EC5C2EBB-9F27-4613-A857-A2CE5E3B1602" Bitness="always64">
+        <File Id="Fil_00021" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.EnvironmentVariables.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00022" Directory="INSTALLFOLDER" Guid="2C53AE2A-A080-439B-BC86-5D66EE57BA7E" Bitness="always64">
+        <File Id="Fil_00022" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.FileExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00023" Directory="INSTALLFOLDER" Guid="8E32C63C-86A3-414D-85D7-1CD5B5E3B4BD" Bitness="always64">
+        <File Id="Fil_00023" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00024" Directory="INSTALLFOLDER" Guid="A225446A-FCB9-42DB-9890-63C20988E779" Bitness="always64">
+        <File Id="Fil_00024" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Configuration.UserSecrets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00025" Directory="INSTALLFOLDER" Guid="592DC504-A755-4463-AE14-60172E73E022" Bitness="always64">
+        <File Id="Fil_00025" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.DependencyInjection.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00026" Directory="INSTALLFOLDER" Guid="3AF24A2D-7165-48EC-BC3B-D9D4277343E7" Bitness="always64">
+        <File Id="Fil_00026" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.DependencyInjection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00027" Directory="INSTALLFOLDER" Guid="0615AB97-BE69-4CF2-89A4-54D34D521C3B" Bitness="always64">
+        <File Id="Fil_00027" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Diagnostics.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00028" Directory="INSTALLFOLDER" Guid="47131460-DE9C-4E84-AEE0-24F2CC18A645" Bitness="always64">
+        <File Id="Fil_00028" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Diagnostics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00029" Directory="INSTALLFOLDER" Guid="CB7CC2B4-20E2-43F9-88F0-F4F47F80627C" Bitness="always64">
+        <File Id="Fil_00029" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.FileProviders.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00030" Directory="INSTALLFOLDER" Guid="C427450D-F40D-4BD2-B0EC-EBD81BD9A2DB" Bitness="always64">
+        <File Id="Fil_00030" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.FileProviders.Physical.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00031" Directory="INSTALLFOLDER" Guid="36C13BED-9638-43CC-AE6E-178C7CB3C8B7" Bitness="always64">
+        <File Id="Fil_00031" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.FileSystemGlobbing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00032" Directory="INSTALLFOLDER" Guid="440BBA5B-D7D9-4B18-A24C-602A1DCB0734" Bitness="always64">
+        <File Id="Fil_00032" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Hosting.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00033" Directory="INSTALLFOLDER" Guid="38DCC628-D043-4E39-90B6-8212B3230578" Bitness="always64">
+        <File Id="Fil_00033" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Hosting.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00034" Directory="INSTALLFOLDER" Guid="303E209E-2CB1-456F-A2CF-6E37AE1FEADC" Bitness="always64">
+        <File Id="Fil_00034" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Logging.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00035" Directory="INSTALLFOLDER" Guid="E15A762D-1308-447D-BBA0-F5F580790D70" Bitness="always64">
+        <File Id="Fil_00035" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Logging.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00036" Directory="INSTALLFOLDER" Guid="C7A81AE1-D6AB-4E80-B621-474B14448D20" Bitness="always64">
+        <File Id="Fil_00036" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Logging.Console.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00037" Directory="INSTALLFOLDER" Guid="F1D32500-6586-412C-8115-EA5AFE6C0367" Bitness="always64">
+        <File Id="Fil_00037" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Logging.Debug.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00038" Directory="INSTALLFOLDER" Guid="728F9252-CCE6-42A0-BAAA-6B471043340A" Bitness="always64">
+        <File Id="Fil_00038" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Logging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00039" Directory="INSTALLFOLDER" Guid="FD965459-37C7-4D6E-A6DA-12DF11F69636" Bitness="always64">
+        <File Id="Fil_00039" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Logging.EventLog.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00040" Directory="INSTALLFOLDER" Guid="6B890E49-638D-4485-8F1C-0EA875812F62" Bitness="always64">
+        <File Id="Fil_00040" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Logging.EventSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00041" Directory="INSTALLFOLDER" Guid="244CBE4F-9345-4599-8773-081CA00ED675" Bitness="always64">
+        <File Id="Fil_00041" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Options.ConfigurationExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00042" Directory="INSTALLFOLDER" Guid="773A4C49-2C3F-42CF-9DF1-7136110329A6" Bitness="always64">
+        <File Id="Fil_00042" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Options.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00043" Directory="INSTALLFOLDER" Guid="CA8AFF30-04C8-488C-9410-7FC61AB86253" Bitness="always64">
+        <File Id="Fil_00043" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Extensions.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00044" Directory="INSTALLFOLDER" Guid="E0E511A1-6519-4C61-A16D-AB66415178C3" Bitness="always64">
+        <File Id="Fil_00044" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.VisualBasic.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00045" Directory="INSTALLFOLDER" Guid="4DD3F591-2582-4271-B8CA-115A90795040" Bitness="always64">
+        <File Id="Fil_00045" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.VisualBasic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00046" Directory="INSTALLFOLDER" Guid="E13A7726-BA47-4767-9FAD-72DE4FA15136" Bitness="always64">
+        <File Id="Fil_00046" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00047" Directory="INSTALLFOLDER" Guid="2CBA223B-9E50-440C-B65B-5A22739F6603" Bitness="always64">
+        <File Id="Fil_00047" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.Registry.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00048" Directory="INSTALLFOLDER" Guid="B440E4D8-78AB-422C-91B2-1076524CB4D9" Bitness="always64">
+        <File Id="Fil_00048" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.Registry.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00049" Directory="INSTALLFOLDER" Guid="FD273415-7C72-493A-A8B9-312D830DA67A" Bitness="always64">
+        <File Id="Fil_00049" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.SystemEvents.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00050" Directory="INSTALLFOLDER" Guid="A2924257-6097-424E-858F-8F5F5AD01D28" Bitness="always64">
+        <File Id="Fil_00050" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Xaml.Behaviors.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00051" Directory="INSTALLFOLDER" Guid="F289C951-9C80-4068-BBBE-27ABB531EE65" Bitness="always64">
+        <File Id="Fil_00051" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\mscordaccore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00052" Directory="INSTALLFOLDER" Guid="E7E6665C-4268-4335-AC81-CFA421F22A1D" Bitness="always64">
+        <File Id="Fil_00052" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\mscordaccore_amd64_amd64_10.0.926.27113.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00053" Directory="INSTALLFOLDER" Guid="751A818E-A20D-4E86-B979-643F6DC49715" Bitness="always64">
+        <File Id="Fil_00053" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\mscordbi.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00054" Directory="INSTALLFOLDER" Guid="1DC508EB-893C-4D12-87A6-B27D056C20FD" Bitness="always64">
+        <File Id="Fil_00054" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\mscorlib.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00055" Directory="INSTALLFOLDER" Guid="C5D87510-E6EE-46D7-B6AC-BB26A9A4A45B" Bitness="always64">
+        <File Id="Fil_00055" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\mscorrc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00056" Directory="INSTALLFOLDER" Guid="3877F110-4557-4340-8391-15FBBFE80E64" Bitness="always64">
+        <File Id="Fil_00056" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\msquic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00057" Directory="INSTALLFOLDER" Guid="D81D0F5C-77C0-4B53-991C-4A17FD7FD2DA" Bitness="always64">
+        <File Id="Fil_00057" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\netstandard.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00058" Directory="INSTALLFOLDER" Guid="6AE129BB-2887-4EF3-A5E8-F49DB63E6E8E" Bitness="always64">
+        <File Id="Fil_00058" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\pdfium.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00059" Directory="INSTALLFOLDER" Guid="39E4E217-3910-4AE9-9903-A3C7702F1EE9" Bitness="always64">
+        <File Id="Fil_00059" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.BarCodes.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00060" Directory="INSTALLFOLDER" Guid="6C31DF38-26A7-422D-A646-2D5C0D6A85F1" Bitness="always64">
+        <File Id="Fil_00060" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.Charting.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00061" Directory="INSTALLFOLDER" Guid="9BAD6174-B637-421D-8669-0A0C7D5D9966" Bitness="always64">
+        <File Id="Fil_00061" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.Cryptography.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00062" Directory="INSTALLFOLDER" Guid="8D3E685B-2266-4C32-A075-D14E149389E7" Bitness="always64">
+        <File Id="Fil_00062" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00063" Directory="INSTALLFOLDER" Guid="D134139B-0B12-4576-BD92-43C906CB541B" Bitness="always64">
+        <File Id="Fil_00063" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.Quality.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00064" Directory="INSTALLFOLDER" Guid="938028FE-19DF-4573-AE6B-A1D8D1CB7A8F" Bitness="always64">
+        <File Id="Fil_00064" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.Shared.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00065" Directory="INSTALLFOLDER" Guid="54194880-E481-4CCF-9E86-0212A690E0B6" Bitness="always64">
+        <File Id="Fil_00065" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.Snippets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00066" Directory="INSTALLFOLDER" Guid="BA42E224-0359-4229-B4B9-D7A466B1B729" Bitness="always64">
+        <File Id="Fil_00066" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.System.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00067" Directory="INSTALLFOLDER" Guid="D9526636-F328-4F82-BA2C-DB1EF5918608" Bitness="always64">
+        <File Id="Fil_00067" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfSharp.WPFonts.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00068" Directory="INSTALLFOLDER" Guid="A05EFB26-4FB3-47B8-A9F1-482607445E2A" Bitness="always64">
+        <File Id="Fil_00068" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.Application.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00069" Directory="INSTALLFOLDER" Guid="1A7547DD-6AA2-490F-AAB7-CDDDFFF2E1C2" Bitness="always64">
+        <File Id="Fil_00069" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.Application.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00070" Directory="INSTALLFOLDER" Guid="6D2A1F95-736C-4808-B674-7D02096DBFD2" Bitness="always64">
+        <File Id="Fil_00070" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.deps.json" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00071" Directory="INSTALLFOLDER" Guid="0DF6E476-73B1-4966-8047-E9A8DAD0D087" Bitness="always64">
+        <File Id="Fil_00071" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00072" Directory="INSTALLFOLDER" Guid="3AC6C8AD-B02A-448F-A383-90810C376811" Bitness="always64">
+        <File Id="Fil_00072" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.Domain.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00073" Directory="INSTALLFOLDER" Guid="880EC644-C5DB-4E5C-BE21-2C1211258E75" Bitness="always64">
+        <File Id="Fil_00073" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.Domain.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00074" Directory="INSTALLFOLDER" Guid="876427E1-84E0-4074-8C16-FDB96458E05D" Bitness="always64">
+        <File Id="Fil_00074" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00075" Directory="INSTALLFOLDER" Guid="5E8DB871-1A91-4038-8608-4783C5BE8D58" Bitness="always64">
+        <File Id="Fil_00075" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.Infrastructure.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00076" Directory="INSTALLFOLDER" Guid="09B8F76E-B730-487F-BCF8-1102F6BA8993" Bitness="always64">
+        <File Id="Fil_00076" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.Infrastructure.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00077" Directory="INSTALLFOLDER" Guid="744655F7-43CB-495B-9479-144A9BF93970" Bitness="always64">
+        <File Id="Fil_00077" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00078" Directory="INSTALLFOLDER" Guid="F65862E3-EDBC-4214-9B42-9C9BB40F388A" Bitness="always64">
+        <File Id="Fil_00078" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PdfStudio.runtimeconfig.json" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00079" Directory="INSTALLFOLDER" Guid="3ACFE5A3-AF54-4648-B393-070B9ECDE92C" Bitness="always64">
+        <File Id="Fil_00079" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PDFtoImage.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00080" Directory="INSTALLFOLDER" Guid="A65F229E-61E0-49B6-9B1A-A0B830A4F0CF" Bitness="always64">
+        <File Id="Fil_00080" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PenImc_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00081" Directory="INSTALLFOLDER" Guid="E8FF6C9B-92C8-485B-BC4D-AD33334D02E8" Bitness="always64">
+        <File Id="Fil_00081" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationCore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00082" Directory="INSTALLFOLDER" Guid="51337BC3-42E7-4797-8BA8-9794671CB840" Bitness="always64">
+        <File Id="Fil_00082" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemCore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00083" Directory="INSTALLFOLDER" Guid="9E56DA84-5AC6-485A-9821-85595BB72CA3" Bitness="always64">
+        <File Id="Fil_00083" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemData.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00084" Directory="INSTALLFOLDER" Guid="8929B1F5-BF3D-4AB0-8FC7-F86891D2DB82" Bitness="always64">
+        <File Id="Fil_00084" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemDrawing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00085" Directory="INSTALLFOLDER" Guid="7A7A31C2-DA5A-4AB2-961C-DCE38BA197EA" Bitness="always64">
+        <File Id="Fil_00085" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemXml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00086" Directory="INSTALLFOLDER" Guid="B74DC1AA-7B08-4E0F-ACC6-F9C7847A0054" Bitness="always64">
+        <File Id="Fil_00086" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemXmlLinq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00087" Directory="INSTALLFOLDER" Guid="2F43EBDF-A891-43E4-890F-E8C0D9662286" Bitness="always64">
+        <File Id="Fil_00087" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Aero.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00088" Directory="INSTALLFOLDER" Guid="2C5C8F42-6FCB-4874-BA70-20F484739356" Bitness="always64">
+        <File Id="Fil_00088" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Aero2.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00089" Directory="INSTALLFOLDER" Guid="0F31BBEE-DAD6-4F64-A6FE-E8F7DF16C14A" Bitness="always64">
+        <File Id="Fil_00089" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.AeroLite.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00090" Directory="INSTALLFOLDER" Guid="1284CC7A-F375-455E-9796-87F366BD9FF0" Bitness="always64">
+        <File Id="Fil_00090" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Classic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00091" Directory="INSTALLFOLDER" Guid="6C2CEA0E-58C0-45B9-A90B-171EF886912A" Bitness="always64">
+        <File Id="Fil_00091" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00092" Directory="INSTALLFOLDER" Guid="59739553-8BB1-4DBD-A0FC-3EB28DFE9646" Bitness="always64">
+        <File Id="Fil_00092" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Fluent.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00093" Directory="INSTALLFOLDER" Guid="A208AEF1-569B-484F-A0DA-6725F6DC379A" Bitness="always64">
+        <File Id="Fil_00093" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Luna.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00094" Directory="INSTALLFOLDER" Guid="ECAC9D85-601E-4ACF-A86E-E171770E5017" Bitness="always64">
+        <File Id="Fil_00094" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Royale.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00095" Directory="INSTALLFOLDER" Guid="9DCBA889-161C-4BD6-958B-B4D67E09BCA4" Bitness="always64">
+        <File Id="Fil_00095" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationNative_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00096" Directory="INSTALLFOLDER" Guid="02F18F92-0788-4CB8-B99D-CD4910148217" Bitness="always64">
+        <File Id="Fil_00096" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\PresentationUI.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00097" Directory="INSTALLFOLDER" Guid="B6F55DA8-1E92-4558-8D00-8DFFF4219236" Bitness="always64">
+        <File Id="Fil_00097" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\ReachFramework.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00098" Directory="INSTALLFOLDER" Guid="65A7AFB8-CECA-4E97-8E35-AE90CDED8575" Bitness="always64">
+        <File Id="Fil_00098" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Serilog.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00099" Directory="INSTALLFOLDER" Guid="0FBCF5FF-BB9B-40AA-B47A-4ECD39C9F8CE" Bitness="always64">
+        <File Id="Fil_00099" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Serilog.Extensions.Hosting.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00100" Directory="INSTALLFOLDER" Guid="62189567-8A38-4772-844F-7D9CC1102235" Bitness="always64">
+        <File Id="Fil_00100" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Serilog.Extensions.Logging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00101" Directory="INSTALLFOLDER" Guid="25020883-C51C-4511-AC88-FC2BA211517F" Bitness="always64">
+        <File Id="Fil_00101" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Serilog.Sinks.Console.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00102" Directory="INSTALLFOLDER" Guid="C4B97637-7F5B-46D7-99DB-0B33FE1999FA" Bitness="always64">
+        <File Id="Fil_00102" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Serilog.Sinks.File.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00103" Directory="INSTALLFOLDER" Guid="84CB5BC5-DCF8-4EC3-8913-EF3348C4B82B" Bitness="always64">
+        <File Id="Fil_00103" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\SkiaSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00104" Directory="INSTALLFOLDER" Guid="B986A4C7-1FF8-4453-9984-79D3000414E7" Bitness="always64">
+        <File Id="Fil_00104" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.AppContext.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00105" Directory="INSTALLFOLDER" Guid="546C7472-0812-4927-83A7-212E0713BA35" Bitness="always64">
+        <File Id="Fil_00105" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Buffers.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00106" Directory="INSTALLFOLDER" Guid="16447A92-A289-4865-9A89-E2016CEEA782" Bitness="always64">
+        <File Id="Fil_00106" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.CodeDom.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00107" Directory="INSTALLFOLDER" Guid="2F6ADF1A-614C-41F0-B5F2-9145A426AA98" Bitness="always64">
+        <File Id="Fil_00107" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Collections.Concurrent.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00108" Directory="INSTALLFOLDER" Guid="3A18777C-DE75-4E2C-9621-D01F7F6D3B02" Bitness="always64">
+        <File Id="Fil_00108" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Collections.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00109" Directory="INSTALLFOLDER" Guid="BD8B39E9-5AFD-4662-9435-89BC61A3AF7A" Bitness="always64">
+        <File Id="Fil_00109" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Collections.Immutable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00110" Directory="INSTALLFOLDER" Guid="9D3F0753-79C4-44DB-93B1-DADBDCC5F8E3" Bitness="always64">
+        <File Id="Fil_00110" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Collections.NonGeneric.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00111" Directory="INSTALLFOLDER" Guid="5F87E460-8231-4DB2-9E44-CFCE73CC1B7B" Bitness="always64">
+        <File Id="Fil_00111" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Collections.Specialized.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00112" Directory="INSTALLFOLDER" Guid="5D54E566-D520-437A-BD53-B6663DE8BA66" Bitness="always64">
+        <File Id="Fil_00112" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.Annotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00113" Directory="INSTALLFOLDER" Guid="AED49E35-865D-4BDE-8D5E-CF5D9119AD69" Bitness="always64">
+        <File Id="Fil_00113" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.DataAnnotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00114" Directory="INSTALLFOLDER" Guid="3B889CA3-6B1F-4866-90ED-38462A09DA3E" Bitness="always64">
+        <File Id="Fil_00114" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00115" Directory="INSTALLFOLDER" Guid="592E8D4E-91F5-47C9-B799-580D11EA5169" Bitness="always64">
+        <File Id="Fil_00115" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.EventBasedAsync.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00116" Directory="INSTALLFOLDER" Guid="4221B0F7-1C0F-49C4-996C-B501BEDE2087" Bitness="always64">
+        <File Id="Fil_00116" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00117" Directory="INSTALLFOLDER" Guid="D4379E27-EAC0-479C-BC3D-D555E401A630" Bitness="always64">
+        <File Id="Fil_00117" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.TypeConverter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00118" Directory="INSTALLFOLDER" Guid="9AD71C8B-DD32-403B-ABD3-7C48AE9E3533" Bitness="always64">
+        <File Id="Fil_00118" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Configuration.ConfigurationManager.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00119" Directory="INSTALLFOLDER" Guid="4EB5852B-96BD-4868-B5CC-E7F3BCBAC4BC" Bitness="always64">
+        <File Id="Fil_00119" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00120" Directory="INSTALLFOLDER" Guid="40284604-C1F0-4F42-BC8B-98FC982A69E8" Bitness="always64">
+        <File Id="Fil_00120" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Console.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00121" Directory="INSTALLFOLDER" Guid="BDFEC03A-A5A0-43D3-972F-AFE592C04DCA" Bitness="always64">
+        <File Id="Fil_00121" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00122" Directory="INSTALLFOLDER" Guid="DEB41581-7FB3-4831-B48C-A49D96314F48" Bitness="always64">
+        <File Id="Fil_00122" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Data.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00123" Directory="INSTALLFOLDER" Guid="BD1384BC-7D72-4BED-BF21-D8F36B395122" Bitness="always64">
+        <File Id="Fil_00123" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Data.DataSetExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00124" Directory="INSTALLFOLDER" Guid="1ABB24D7-C2DC-47D0-9A7B-0970F292AE33" Bitness="always64">
+        <File Id="Fil_00124" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Data.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00125" Directory="INSTALLFOLDER" Guid="FAB1D3BE-AA10-41B9-898C-E820F2DC0FF3" Bitness="always64">
+        <File Id="Fil_00125" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Contracts.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00126" Directory="INSTALLFOLDER" Guid="83B67CDE-B158-488E-A2A5-A8EE3224DA72" Bitness="always64">
+        <File Id="Fil_00126" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Debug.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00127" Directory="INSTALLFOLDER" Guid="E2C2290F-3AF6-4284-890A-B5CFF26F447F" Bitness="always64">
+        <File Id="Fil_00127" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.DiagnosticSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00128" Directory="INSTALLFOLDER" Guid="F765CF23-52B7-4077-A34F-D154AC87B67E" Bitness="always64">
+        <File Id="Fil_00128" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.EventLog.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00129" Directory="INSTALLFOLDER" Guid="C124B9D8-D272-417D-8248-BC214CB120CC" Bitness="always64">
+        <File Id="Fil_00129" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.EventLog.Messages.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00130" Directory="INSTALLFOLDER" Guid="3792A725-E712-4754-A77F-14A6E3FB9C2C" Bitness="always64">
+        <File Id="Fil_00130" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.FileVersionInfo.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00131" Directory="INSTALLFOLDER" Guid="E4870FB5-E256-4123-90B6-11F43DF33379" Bitness="always64">
+        <File Id="Fil_00131" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.PerformanceCounter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00132" Directory="INSTALLFOLDER" Guid="3098E296-FD3B-4B1A-9ED5-8CE253ACFAFA" Bitness="always64">
+        <File Id="Fil_00132" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Process.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00133" Directory="INSTALLFOLDER" Guid="6935FCB3-C001-4DBA-85AC-E8F51362C375" Bitness="always64">
+        <File Id="Fil_00133" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.StackTrace.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00134" Directory="INSTALLFOLDER" Guid="A97D63E9-4A37-451F-8CEA-9E8A9A3A409B" Bitness="always64">
+        <File Id="Fil_00134" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.TextWriterTraceListener.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00135" Directory="INSTALLFOLDER" Guid="6B035F4A-853B-4E72-8ECD-A3191B346828" Bitness="always64">
+        <File Id="Fil_00135" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Tools.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00136" Directory="INSTALLFOLDER" Guid="4BC47A94-2340-46D2-B0DD-471BE693C842" Bitness="always64">
+        <File Id="Fil_00136" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.TraceSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00137" Directory="INSTALLFOLDER" Guid="E3DB4B1E-976F-4586-80C8-5E33672FD0F5" Bitness="always64">
+        <File Id="Fil_00137" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Tracing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00138" Directory="INSTALLFOLDER" Guid="DDA9D181-5CD0-457F-85FD-EDC052EFE919" Bitness="always64">
+        <File Id="Fil_00138" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.DirectoryServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00139" Directory="INSTALLFOLDER" Guid="93E626A3-3478-462D-BD45-71A000AF76B2" Bitness="always64">
+        <File Id="Fil_00139" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00140" Directory="INSTALLFOLDER" Guid="2B456530-FC98-48E5-8C5A-D8AB0E174929" Bitness="always64">
+        <File Id="Fil_00140" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Drawing.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00141" Directory="INSTALLFOLDER" Guid="DCA48001-B3FC-4751-8447-7ED5B9498052" Bitness="always64">
+        <File Id="Fil_00141" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Drawing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00142" Directory="INSTALLFOLDER" Guid="38F61198-C3B3-4EBD-8C05-81ADDF0DDF5E" Bitness="always64">
+        <File Id="Fil_00142" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Drawing.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00143" Directory="INSTALLFOLDER" Guid="30AAA1B2-857B-4794-8996-32E7C3A54930" Bitness="always64">
+        <File Id="Fil_00143" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Dynamic.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00144" Directory="INSTALLFOLDER" Guid="3CF8C8A1-0CBB-4DA2-99F9-EC93768D9E04" Bitness="always64">
+        <File Id="Fil_00144" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Formats.Asn1.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00145" Directory="INSTALLFOLDER" Guid="ACCEED29-D9A0-4D84-8CFC-0621868D95A3" Bitness="always64">
+        <File Id="Fil_00145" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Formats.Nrbf.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00146" Directory="INSTALLFOLDER" Guid="FD7F3452-C0B8-4830-88C3-3D073EE2E5A5" Bitness="always64">
+        <File Id="Fil_00146" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Formats.Tar.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00147" Directory="INSTALLFOLDER" Guid="B6223C38-0E8A-4893-B033-C99BAB69FA5C" Bitness="always64">
+        <File Id="Fil_00147" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Globalization.Calendars.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00148" Directory="INSTALLFOLDER" Guid="3D09FF64-B487-4E5A-BB57-567473D32D9A" Bitness="always64">
+        <File Id="Fil_00148" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Globalization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00149" Directory="INSTALLFOLDER" Guid="B1E6FE9F-9869-4AE6-8471-50B48AD0325B" Bitness="always64">
+        <File Id="Fil_00149" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Globalization.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00150" Directory="INSTALLFOLDER" Guid="4FA460CC-DD5B-4AA4-87CF-5C1C8C0EE8BD" Bitness="always64">
+        <File Id="Fil_00150" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.Brotli.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00151" Directory="INSTALLFOLDER" Guid="494A5624-24A5-4BBB-B256-0DAC37C8EFAC" Bitness="always64">
+        <File Id="Fil_00151" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00152" Directory="INSTALLFOLDER" Guid="155472FC-DFF0-4F01-B0D5-FB45B36D1F0B" Bitness="always64">
+        <File Id="Fil_00152" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.FileSystem.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00153" Directory="INSTALLFOLDER" Guid="7F8A5398-1410-48EB-9913-BB47A0FF8BFD" Bitness="always64">
+        <File Id="Fil_00153" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.Native.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00154" Directory="INSTALLFOLDER" Guid="A10A37B2-20CE-43F7-82A1-D105E6F18B41" Bitness="always64">
+        <File Id="Fil_00154" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.ZipFile.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00155" Directory="INSTALLFOLDER" Guid="7A4EFA49-C1DB-4BC9-8750-D9249E889E2B" Bitness="always64">
+        <File Id="Fil_00155" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00156" Directory="INSTALLFOLDER" Guid="4A05BEBF-358F-423E-8B95-5A59270F2554" Bitness="always64">
+        <File Id="Fil_00156" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00157" Directory="INSTALLFOLDER" Guid="4D0C5A1F-CA4A-47D3-8B8F-0DC2B8A1E36D" Bitness="always64">
+        <File Id="Fil_00157" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00158" Directory="INSTALLFOLDER" Guid="EC2545CE-25A0-44C2-B345-6F4D25B98B21" Bitness="always64">
+        <File Id="Fil_00158" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.DriveInfo.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00159" Directory="INSTALLFOLDER" Guid="4254DA11-CADD-4D7C-BF9B-44F01379497C" Bitness="always64">
+        <File Id="Fil_00159" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00160" Directory="INSTALLFOLDER" Guid="3EA71B23-7D00-448C-9874-386AA99D9E97" Bitness="always64">
+        <File Id="Fil_00160" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.Watcher.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00161" Directory="INSTALLFOLDER" Guid="0F79249A-C5F5-4349-BF01-375CEF4E4521" Bitness="always64">
+        <File Id="Fil_00161" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.IsolatedStorage.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00162" Directory="INSTALLFOLDER" Guid="8ACD8362-1661-43F9-B9AC-DF61E6A02022" Bitness="always64">
+        <File Id="Fil_00162" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.MemoryMappedFiles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00163" Directory="INSTALLFOLDER" Guid="6EC16D27-5E15-4ACB-B43B-367B95672C54" Bitness="always64">
+        <File Id="Fil_00163" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Packaging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00164" Directory="INSTALLFOLDER" Guid="90FFCD69-E214-4AB3-B1E0-CFB99937E244" Bitness="always64">
+        <File Id="Fil_00164" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Pipelines.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00165" Directory="INSTALLFOLDER" Guid="14478388-8918-408B-AF4C-47B461496FCC" Bitness="always64">
+        <File Id="Fil_00165" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Pipes.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00166" Directory="INSTALLFOLDER" Guid="7727CF45-C5F3-4D79-A632-66DE0B7FAA42" Bitness="always64">
+        <File Id="Fil_00166" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.Pipes.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00167" Directory="INSTALLFOLDER" Guid="8161D015-A3A2-4FF7-B6C9-1CF9DD6DA685" Bitness="always64">
+        <File Id="Fil_00167" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.IO.UnmanagedMemoryStream.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00168" Directory="INSTALLFOLDER" Guid="4A76B461-DFE3-4F8F-8091-9456C9D46E12" Bitness="always64">
+        <File Id="Fil_00168" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Linq.AsyncEnumerable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00169" Directory="INSTALLFOLDER" Guid="9380BD8A-597B-45CE-B743-54EB756ECFEE" Bitness="always64">
+        <File Id="Fil_00169" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00170" Directory="INSTALLFOLDER" Guid="D96A53C8-6B18-4783-B2E7-38B486230C18" Bitness="always64">
+        <File Id="Fil_00170" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Linq.Expressions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00171" Directory="INSTALLFOLDER" Guid="1CABF58C-9CB3-472D-A9DA-42AEDB976459" Bitness="always64">
+        <File Id="Fil_00171" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Linq.Parallel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00172" Directory="INSTALLFOLDER" Guid="837CDDE6-8155-4CA2-91C7-55843A7C6543" Bitness="always64">
+        <File Id="Fil_00172" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Linq.Queryable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00173" Directory="INSTALLFOLDER" Guid="8A3FE12A-26DF-47F8-B4D7-00F775C3274F" Bitness="always64">
+        <File Id="Fil_00173" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Memory.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00174" Directory="INSTALLFOLDER" Guid="57C4AA5C-F1AE-47F0-BB4D-2383F48AEC5C" Bitness="always64">
+        <File Id="Fil_00174" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00175" Directory="INSTALLFOLDER" Guid="332707F0-780A-427B-8306-E549FD9BF60D" Bitness="always64">
+        <File Id="Fil_00175" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Http.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00176" Directory="INSTALLFOLDER" Guid="B1E36E55-CB32-4E4B-A9CB-5FBDB7637833" Bitness="always64">
+        <File Id="Fil_00176" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Http.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00177" Directory="INSTALLFOLDER" Guid="69375F7D-7B89-4903-B480-36F48BE84F88" Bitness="always64">
+        <File Id="Fil_00177" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.HttpListener.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00178" Directory="INSTALLFOLDER" Guid="931D282B-985A-4FB1-91FF-1215C9882849" Bitness="always64">
+        <File Id="Fil_00178" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Mail.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00179" Directory="INSTALLFOLDER" Guid="23AB2FAC-65B6-49A8-A7FA-A7C193137BED" Bitness="always64">
+        <File Id="Fil_00179" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.NameResolution.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00180" Directory="INSTALLFOLDER" Guid="EDBBA521-39A4-4288-B144-222E9C901E08" Bitness="always64">
+        <File Id="Fil_00180" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.NetworkInformation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00181" Directory="INSTALLFOLDER" Guid="18335B75-AF9D-43A0-BB4F-30D1DCC4111D" Bitness="always64">
+        <File Id="Fil_00181" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Ping.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00182" Directory="INSTALLFOLDER" Guid="80FAF768-9D40-435D-A84B-92E263976FE5" Bitness="always64">
+        <File Id="Fil_00182" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00183" Directory="INSTALLFOLDER" Guid="06BC158B-199D-4044-BEF9-8A34934C0434" Bitness="always64">
+        <File Id="Fil_00183" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Quic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00184" Directory="INSTALLFOLDER" Guid="5FAADEBA-9D0B-4AE4-BA74-120DC4DD931E" Bitness="always64">
+        <File Id="Fil_00184" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Requests.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00185" Directory="INSTALLFOLDER" Guid="EB8FD36A-DF0D-4EF5-9820-64583AE039C3" Bitness="always64">
+        <File Id="Fil_00185" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00186" Directory="INSTALLFOLDER" Guid="F666E874-980D-481D-83C4-1C3D0E573708" Bitness="always64">
+        <File Id="Fil_00186" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.ServerSentEvents.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00187" Directory="INSTALLFOLDER" Guid="68BC144E-AF40-42BC-9B65-EA8E3B1009D3" Bitness="always64">
+        <File Id="Fil_00187" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.ServicePoint.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00188" Directory="INSTALLFOLDER" Guid="717C89B9-DBEA-4256-B463-CECC88521E28" Bitness="always64">
+        <File Id="Fil_00188" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.Sockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00189" Directory="INSTALLFOLDER" Guid="D0F3DE17-673D-42EA-8926-9FB195B13837" Bitness="always64">
+        <File Id="Fil_00189" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebClient.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00190" Directory="INSTALLFOLDER" Guid="E21F20A9-99DE-40F1-974A-F2C319D7B06E" Bitness="always64">
+        <File Id="Fil_00190" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebHeaderCollection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00191" Directory="INSTALLFOLDER" Guid="AB22CE17-E51D-4F68-8E15-FF338F685F43" Bitness="always64">
+        <File Id="Fil_00191" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebProxy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00192" Directory="INSTALLFOLDER" Guid="AE52B121-4E01-4E61-B278-AC4D059F724E" Bitness="always64">
+        <File Id="Fil_00192" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebSockets.Client.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00193" Directory="INSTALLFOLDER" Guid="4EC17662-534C-4EEC-832A-3498BC2D8070" Bitness="always64">
+        <File Id="Fil_00193" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebSockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00194" Directory="INSTALLFOLDER" Guid="21011753-321B-48C9-A74B-93E57AC39BEC" Bitness="always64">
+        <File Id="Fil_00194" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Numerics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00195" Directory="INSTALLFOLDER" Guid="8AAFA8DF-DB81-4545-863B-432CAACC6C98" Bitness="always64">
+        <File Id="Fil_00195" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Numerics.Vectors.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00196" Directory="INSTALLFOLDER" Guid="E4C4A2D6-0AAB-4A24-B66B-BC50B762C232" Bitness="always64">
+        <File Id="Fil_00196" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ObjectModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00197" Directory="INSTALLFOLDER" Guid="4F18FEB1-3C14-4556-829D-8254D2CEC08C" Bitness="always64">
+        <File Id="Fil_00197" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Printing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00198" Directory="INSTALLFOLDER" Guid="6A1EEAB1-3C66-4B01-A8D6-475FCAC75EDB" Bitness="always64">
+        <File Id="Fil_00198" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Private.CoreLib.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00199" Directory="INSTALLFOLDER" Guid="1EA9EAA8-98FC-4D0C-9CB7-A129E511533E" Bitness="always64">
+        <File Id="Fil_00199" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Private.DataContractSerialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00200" Directory="INSTALLFOLDER" Guid="AA7CA09D-37CD-4C80-9039-316455FBE54D" Bitness="always64">
+        <File Id="Fil_00200" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Private.Uri.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00201" Directory="INSTALLFOLDER" Guid="0F491B5F-6347-4281-A412-68AD8705BC6F" Bitness="always64">
+        <File Id="Fil_00201" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Private.Windows.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00202" Directory="INSTALLFOLDER" Guid="E0318288-40E8-4E9F-A454-8E4FE4E5A65C" Bitness="always64">
+        <File Id="Fil_00202" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Private.Windows.GdiPlus.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00203" Directory="INSTALLFOLDER" Guid="62FB88FE-BF76-4F11-8A3C-671F49114B24" Bitness="always64">
+        <File Id="Fil_00203" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Private.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00204" Directory="INSTALLFOLDER" Guid="69F6503E-ECFA-4D5F-B9A1-D0ABF451F465" Bitness="always64">
+        <File Id="Fil_00204" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Private.Xml.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00205" Directory="INSTALLFOLDER" Guid="40CC6BF8-F520-4FEF-AF24-961BC3F66DB5" Bitness="always64">
+        <File Id="Fil_00205" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.DispatchProxy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00206" Directory="INSTALLFOLDER" Guid="FAF9C876-6F3B-4E03-BBF7-7A7ACBB65457" Bitness="always64">
+        <File Id="Fil_00206" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00207" Directory="INSTALLFOLDER" Guid="BC09AF83-DF48-4EA8-9157-30C367ADD061" Bitness="always64">
+        <File Id="Fil_00207" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Emit.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00208" Directory="INSTALLFOLDER" Guid="3850790A-5438-43D7-860E-D57A47DDAD8E" Bitness="always64">
+        <File Id="Fil_00208" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Emit.ILGeneration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00209" Directory="INSTALLFOLDER" Guid="FD6393AC-D0C4-49B3-8CF2-D38D4D870DBE" Bitness="always64">
+        <File Id="Fil_00209" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Emit.Lightweight.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00210" Directory="INSTALLFOLDER" Guid="190BE698-C8C7-4525-AA6C-5B8048092AB1" Bitness="always64">
+        <File Id="Fil_00210" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00211" Directory="INSTALLFOLDER" Guid="60AA1AFA-F2C8-452F-9C97-79A4E7136B86" Bitness="always64">
+        <File Id="Fil_00211" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Metadata.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00212" Directory="INSTALLFOLDER" Guid="15B6CCF1-A422-46BF-B073-BB12B21563A4" Bitness="always64">
+        <File Id="Fil_00212" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00213" Directory="INSTALLFOLDER" Guid="F41FC1F8-DBFA-477B-B4B6-1B50DEF0C3D8" Bitness="always64">
+        <File Id="Fil_00213" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.TypeExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00214" Directory="INSTALLFOLDER" Guid="43D6262B-49B7-4BC7-A99D-551B1094FBFD" Bitness="always64">
+        <File Id="Fil_00214" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Resources.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00215" Directory="INSTALLFOLDER" Guid="E9B335C7-2789-4709-B360-0EC624775CC3" Bitness="always64">
+        <File Id="Fil_00215" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Resources.Reader.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00216" Directory="INSTALLFOLDER" Guid="B689D1A2-624F-420A-8E53-8EBA1C5B7C76" Bitness="always64">
+        <File Id="Fil_00216" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Resources.ResourceManager.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00217" Directory="INSTALLFOLDER" Guid="EE182645-A52D-446F-A011-D86CBE649122" Bitness="always64">
+        <File Id="Fil_00217" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Resources.Writer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00218" Directory="INSTALLFOLDER" Guid="3E913FDD-ED2C-4BEB-974A-B1302208561D" Bitness="always64">
+        <File Id="Fil_00218" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00219" Directory="INSTALLFOLDER" Guid="C62515B0-9DB4-4E8B-819D-E17D1D18749E" Bitness="always64">
+        <File Id="Fil_00219" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.CompilerServices.VisualC.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00220" Directory="INSTALLFOLDER" Guid="26A7A813-6E22-4A00-8114-E2FF490575D3" Bitness="always64">
+        <File Id="Fil_00220" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00221" Directory="INSTALLFOLDER" Guid="306CB11B-4814-4804-A6D5-DA563F6E36A4" Bitness="always64">
+        <File Id="Fil_00221" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00222" Directory="INSTALLFOLDER" Guid="2C873222-0B90-4FF0-8AF5-4BCA25708D0F" Bitness="always64">
+        <File Id="Fil_00222" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Handles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00223" Directory="INSTALLFOLDER" Guid="640D0BFF-5C58-44DD-86C4-F1263675DA61" Bitness="always64">
+        <File Id="Fil_00223" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.InteropServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00224" Directory="INSTALLFOLDER" Guid="B3E7C697-E514-4F6B-99C0-77D461FD3DA7" Bitness="always64">
+        <File Id="Fil_00224" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.InteropServices.JavaScript.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00225" Directory="INSTALLFOLDER" Guid="455770ED-D756-42D6-BD9E-21AAE31053B2" Bitness="always64">
+        <File Id="Fil_00225" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.InteropServices.RuntimeInformation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00226" Directory="INSTALLFOLDER" Guid="199DFEF4-A669-428D-A790-FB9718365FFF" Bitness="always64">
+        <File Id="Fil_00226" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Intrinsics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00227" Directory="INSTALLFOLDER" Guid="E3DEF879-2314-4127-818B-0E05CA349437" Bitness="always64">
+        <File Id="Fil_00227" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Loader.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00228" Directory="INSTALLFOLDER" Guid="C7260B80-94C8-4F80-9661-8445D43772B9" Bitness="always64">
+        <File Id="Fil_00228" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Numerics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00229" Directory="INSTALLFOLDER" Guid="435EFDFB-FA81-4999-B905-FBAF400C014A" Bitness="always64">
+        <File Id="Fil_00229" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00230" Directory="INSTALLFOLDER" Guid="091147DA-EA26-4027-B0B6-2B40B4E1F69C" Bitness="always64">
+        <File Id="Fil_00230" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Formatters.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00231" Directory="INSTALLFOLDER" Guid="E0F1BF6D-3F7A-470C-BE04-C44F159D80B6" Bitness="always64">
+        <File Id="Fil_00231" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00232" Directory="INSTALLFOLDER" Guid="B0638ACB-D49B-4072-8423-2FE66BB49090" Bitness="always64">
+        <File Id="Fil_00232" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00233" Directory="INSTALLFOLDER" Guid="67CBD56C-891D-42CE-B06B-A7DB7376E660" Bitness="always64">
+        <File Id="Fil_00233" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00234" Directory="INSTALLFOLDER" Guid="892033D0-D221-4292-A571-86B562F6DDA8" Bitness="always64">
+        <File Id="Fil_00234" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00235" Directory="INSTALLFOLDER" Guid="4507FA1A-6114-4CA5-98C5-272A3F4B2B34" Bitness="always64">
+        <File Id="Fil_00235" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Claims.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00236" Directory="INSTALLFOLDER" Guid="2E0BF1C0-662B-4CFA-B487-4DD45C0EE8B7" Bitness="always64">
+        <File Id="Fil_00236" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Algorithms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00237" Directory="INSTALLFOLDER" Guid="27AABB62-CFF4-46CD-8564-6B07B8E5A205" Bitness="always64">
+        <File Id="Fil_00237" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Cng.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00238" Directory="INSTALLFOLDER" Guid="E4B846E0-0B4D-4D7A-9871-4E36C05DF42B" Bitness="always64">
+        <File Id="Fil_00238" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Csp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00239" Directory="INSTALLFOLDER" Guid="768D5602-8551-4F72-AF07-D05A70FF7A95" Bitness="always64">
+        <File Id="Fil_00239" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00240" Directory="INSTALLFOLDER" Guid="8E742EB0-2492-4A33-B57B-382BBFABAC94" Bitness="always64">
+        <File Id="Fil_00240" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Encoding.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00241" Directory="INSTALLFOLDER" Guid="366FF2F8-A15E-4488-AABB-7B7A80C0227B" Bitness="always64">
+        <File Id="Fil_00241" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.OpenSsl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00242" Directory="INSTALLFOLDER" Guid="0A0F4852-AF5B-49C7-B602-9C5EB24AB839" Bitness="always64">
+        <File Id="Fil_00242" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Pkcs.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00243" Directory="INSTALLFOLDER" Guid="5C7A2F7D-4697-4DD0-BA68-0D00C17E6ED7" Bitness="always64">
+        <File Id="Fil_00243" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00244" Directory="INSTALLFOLDER" Guid="1CF239D0-A853-455A-9FE1-84EF204D4DA0" Bitness="always64">
+        <File Id="Fil_00244" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.ProtectedData.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00245" Directory="INSTALLFOLDER" Guid="2B389AE6-672B-43AA-A9A2-BB677C67B086" Bitness="always64">
+        <File Id="Fil_00245" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.X509Certificates.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00246" Directory="INSTALLFOLDER" Guid="8A80D07B-8918-4521-A233-E819DCF05B71" Bitness="always64">
+        <File Id="Fil_00246" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00247" Directory="INSTALLFOLDER" Guid="8517D4AB-2634-4A8F-B3DC-199FD9922E76" Bitness="always64">
+        <File Id="Fil_00247" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00248" Directory="INSTALLFOLDER" Guid="BB98506B-453C-4FC8-A5D2-1E5D36248659" Bitness="always64">
+        <File Id="Fil_00248" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Permissions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00249" Directory="INSTALLFOLDER" Guid="CF113278-2DF9-4ABC-97DF-1855073947FC" Bitness="always64">
+        <File Id="Fil_00249" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Principal.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00250" Directory="INSTALLFOLDER" Guid="B837CEEB-1DD3-4ACD-BC1F-B19A2F73003C" Bitness="always64">
+        <File Id="Fil_00250" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.Principal.Windows.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00251" Directory="INSTALLFOLDER" Guid="8BB41914-D67E-4CF3-9DCC-6B3339920773" Bitness="always64">
+        <File Id="Fil_00251" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Security.SecureString.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00252" Directory="INSTALLFOLDER" Guid="EBE88ED7-47A3-4686-A0C6-81C17508204A" Bitness="always64">
+        <File Id="Fil_00252" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ServiceModel.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00253" Directory="INSTALLFOLDER" Guid="E66DC19D-B717-48EF-881F-47FDCCC359E5" Bitness="always64">
+        <File Id="Fil_00253" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ServiceProcess.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00254" Directory="INSTALLFOLDER" Guid="4093756A-C7E6-48F8-B17C-D7214B81B462" Bitness="always64">
+        <File Id="Fil_00254" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encoding.CodePages.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00255" Directory="INSTALLFOLDER" Guid="5C847ED5-3D08-48BD-89BE-2033465B9896" Bitness="always64">
+        <File Id="Fil_00255" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encoding.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00256" Directory="INSTALLFOLDER" Guid="3435C04D-52A6-4D71-9508-4C6DD0E8AEBB" Bitness="always64">
+        <File Id="Fil_00256" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encoding.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00257" Directory="INSTALLFOLDER" Guid="1BFFDCC0-6758-4A86-A35A-D420192EAFF6" Bitness="always64">
+        <File Id="Fil_00257" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encodings.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00258" Directory="INSTALLFOLDER" Guid="64C30BFF-EC53-4B62-87CB-7514C54DD56E" Bitness="always64">
+        <File Id="Fil_00258" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Text.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00259" Directory="INSTALLFOLDER" Guid="2187F102-F3CC-4CA2-970F-D8A5BE0BCEDD" Bitness="always64">
+        <File Id="Fil_00259" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Text.RegularExpressions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00260" Directory="INSTALLFOLDER" Guid="605A2321-4646-4991-8BE3-9411455E3366" Bitness="always64">
+        <File Id="Fil_00260" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00261" Directory="INSTALLFOLDER" Guid="48DD3C22-ECD8-4D13-9AA3-9EF4A989BE21" Bitness="always64">
+        <File Id="Fil_00261" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Channels.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00262" Directory="INSTALLFOLDER" Guid="19B8E3AF-0BAF-4FD3-A555-BEF0BE77D41C" Bitness="always64">
+        <File Id="Fil_00262" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00263" Directory="INSTALLFOLDER" Guid="125C2A8F-4E1A-468E-A13C-B906C84EF8DE" Bitness="always64">
+        <File Id="Fil_00263" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Overlapped.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00264" Directory="INSTALLFOLDER" Guid="58C23CFA-C8C2-416C-AF98-49736EA6AAA3" Bitness="always64">
+        <File Id="Fil_00264" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.Dataflow.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00265" Directory="INSTALLFOLDER" Guid="99AB361B-1947-4544-BA02-1622E0449447" Bitness="always64">
+        <File Id="Fil_00265" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00266" Directory="INSTALLFOLDER" Guid="39B22B18-09BD-4D4A-BFE2-E09A05C936F8" Bitness="always64">
+        <File Id="Fil_00266" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00267" Directory="INSTALLFOLDER" Guid="AACCE82E-5071-49A2-98AE-190E50EC26B8" Bitness="always64">
+        <File Id="Fil_00267" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.Parallel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00268" Directory="INSTALLFOLDER" Guid="857725B4-703F-428A-B29D-7B278A4472B3" Bitness="always64">
+        <File Id="Fil_00268" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Thread.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00269" Directory="INSTALLFOLDER" Guid="A19BAD61-07DD-4BD1-A966-9E4CAC6F84AE" Bitness="always64">
+        <File Id="Fil_00269" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.ThreadPool.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00270" Directory="INSTALLFOLDER" Guid="715F3258-87DB-4A89-8EE6-D9B46AE9D239" Bitness="always64">
+        <File Id="Fil_00270" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Timer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00271" Directory="INSTALLFOLDER" Guid="498C37A2-7F91-4480-8BA5-1EE4C7FB4E30" Bitness="always64">
+        <File Id="Fil_00271" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Transactions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00272" Directory="INSTALLFOLDER" Guid="881EA22B-7132-43A1-81EF-7F19A981A787" Bitness="always64">
+        <File Id="Fil_00272" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Transactions.Local.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00273" Directory="INSTALLFOLDER" Guid="2D1248B7-F1EE-40BB-9BC9-1207D380820A" Bitness="always64">
+        <File Id="Fil_00273" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.ValueTuple.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00274" Directory="INSTALLFOLDER" Guid="00E4AC17-5F46-42A9-94D2-137EDFDC97CE" Bitness="always64">
+        <File Id="Fil_00274" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00275" Directory="INSTALLFOLDER" Guid="49904562-1C2F-47A7-B237-8D5FB534E990" Bitness="always64">
+        <File Id="Fil_00275" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Web.HttpUtility.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00276" Directory="INSTALLFOLDER" Guid="3C511102-DE5F-4AE9-AE8E-49269D952629" Bitness="always64">
+        <File Id="Fil_00276" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Controls.Ribbon.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00277" Directory="INSTALLFOLDER" Guid="10F68EC8-BA28-46E8-BF50-02ABE4E8B9B5" Bitness="always64">
+        <File Id="Fil_00277" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Windows.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00278" Directory="INSTALLFOLDER" Guid="1A0E02A2-1F1F-406E-808F-CB5BCD541ECB" Bitness="always64">
+        <File Id="Fil_00278" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00279" Directory="INSTALLFOLDER" Guid="EE8E07D0-883B-47A8-8C4E-081C4416AA52" Bitness="always64">
+        <File Id="Fil_00279" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Input.Manipulations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00280" Directory="INSTALLFOLDER" Guid="1AE75C4D-4FAF-48A9-858D-301795FC51D4" Bitness="always64">
+        <File Id="Fil_00280" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Presentation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00281" Directory="INSTALLFOLDER" Guid="5AB0267E-DB49-47DA-8113-8CC85ED7F4C3" Bitness="always64">
+        <File Id="Fil_00281" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00282" Directory="INSTALLFOLDER" Guid="BE853EB3-488B-4963-8323-27B293C1CC77" Bitness="always64">
+        <File Id="Fil_00282" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xaml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00283" Directory="INSTALLFOLDER" Guid="9E0C24BA-B2C7-4A6A-A4C6-F46D8D0D27D9" Bitness="always64">
+        <File Id="Fil_00283" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00284" Directory="INSTALLFOLDER" Guid="38709DDF-1A22-4DAE-A00D-B1D2F4A50C15" Bitness="always64">
+        <File Id="Fil_00284" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00285" Directory="INSTALLFOLDER" Guid="517A2063-6FC6-424D-997D-AC4DF2419B42" Bitness="always64">
+        <File Id="Fil_00285" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.ReaderWriter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00286" Directory="INSTALLFOLDER" Guid="BB108C32-0EF1-48FA-9251-F27FE7A488E3" Bitness="always64">
+        <File Id="Fil_00286" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.Serialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00287" Directory="INSTALLFOLDER" Guid="F42EFA88-6FCB-4CB3-9005-FE4010B6DCFD" Bitness="always64">
+        <File Id="Fil_00287" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00288" Directory="INSTALLFOLDER" Guid="FEB1AC7D-23E5-4338-B372-EC114934F8DF" Bitness="always64">
+        <File Id="Fil_00288" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XmlDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00289" Directory="INSTALLFOLDER" Guid="BA7F6833-5218-4AA1-89A3-C6E127A2B6AF" Bitness="always64">
+        <File Id="Fil_00289" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XmlSerializer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00290" Directory="INSTALLFOLDER" Guid="F0AF56D0-8F22-4E27-9266-AC23DAF61511" Bitness="always64">
+        <File Id="Fil_00290" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XPath.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00291" Directory="INSTALLFOLDER" Guid="BC1385D6-43E3-42C5-9FF3-B16C4D1B75F1" Bitness="always64">
+        <File Id="Fil_00291" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XPath.XDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00292" Directory="INSTALLFOLDER" Guid="F7682572-E61D-4CDF-A034-52C3CFF0686D" Bitness="always64">
+        <File Id="Fil_00292" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\TesseractOCR.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00293" Directory="INSTALLFOLDER" Guid="F50F2507-A003-46D2-9991-C81F19A60405" Bitness="always64">
+        <File Id="Fil_00293" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UglyToad.PdfPig.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00294" Directory="INSTALLFOLDER" Guid="02D5E3E7-1816-4921-B9AF-563ED0A3DBEB" Bitness="always64">
+        <File Id="Fil_00294" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UglyToad.PdfPig.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00295" Directory="INSTALLFOLDER" Guid="FF4925F3-1742-4FDB-BF9C-0868D8AF5B3C" Bitness="always64">
+        <File Id="Fil_00295" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UglyToad.PdfPig.DocumentLayoutAnalysis.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00296" Directory="INSTALLFOLDER" Guid="20AEF60D-6098-49BC-9AF7-AC50567F2BD3" Bitness="always64">
+        <File Id="Fil_00296" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UglyToad.PdfPig.Fonts.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00297" Directory="INSTALLFOLDER" Guid="A3F6A496-5778-4FE0-8961-7710BA82908F" Bitness="always64">
+        <File Id="Fil_00297" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UglyToad.PdfPig.Package.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00298" Directory="INSTALLFOLDER" Guid="5C82F1A4-4E7B-4361-B1B2-D6F286EFB2F9" Bitness="always64">
+        <File Id="Fil_00298" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UglyToad.PdfPig.Tokenization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00299" Directory="INSTALLFOLDER" Guid="74A81ADB-2418-4196-AA66-C79790132F1D" Bitness="always64">
+        <File Id="Fil_00299" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UglyToad.PdfPig.Tokens.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00300" Directory="INSTALLFOLDER" Guid="E6E323AF-B206-4EB8-95F5-B6F02ECD6B13" Bitness="always64">
+        <File Id="Fil_00300" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UIAutomationClient.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00301" Directory="INSTALLFOLDER" Guid="A1DE2037-8A2B-4089-84A9-7D1433DBD3E3" Bitness="always64">
+        <File Id="Fil_00301" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UIAutomationClientSideProviders.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00302" Directory="INSTALLFOLDER" Guid="56E6557E-EFCF-4F07-90F4-B3C69138B143" Bitness="always64">
+        <File Id="Fil_00302" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UIAutomationProvider.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00303" Directory="INSTALLFOLDER" Guid="6841222F-4FAC-4ACC-88E6-7B38FADC6F3A" Bitness="always64">
+        <File Id="Fil_00303" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\UIAutomationTypes.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00304" Directory="INSTALLFOLDER" Guid="6C457129-1B92-44CC-9679-CED6E4DE994A" Bitness="always64">
+        <File Id="Fil_00304" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\vcruntime140_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00305" Directory="INSTALLFOLDER" Guid="C21FA8E2-7D38-4EAA-87BE-C9CD8750B0A4" Bitness="always64">
+        <File Id="Fil_00305" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\WindowsBase.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00306" Directory="INSTALLFOLDER" Guid="A38E0F7B-CC47-46D4-AA16-231D212DCB3C" Bitness="always64">
+        <File Id="Fil_00306" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\wpfgfx_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00307" Directory="Dir_0005_Fonts" Guid="337E752F-17A0-4537-AD49-31679F6ED37D" Bitness="always64">
+        <File Id="Fil_00307" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\Resources\Fonts\NotoSansJP-Regular.ttf" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00308" Directory="Dir_0006_tessdata" Guid="86299A92-7D14-4D0B-B164-98D8B1AE6C47" Bitness="always64">
+        <File Id="Fil_00308" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\tools\tessdata\eng.traineddata" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00309" Directory="Dir_0006_tessdata" Guid="005F841F-0D26-4104-98CA-972CB4E57E42" Bitness="always64">
+        <File Id="Fil_00309" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\tools\tessdata\jpn.traineddata" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00310" Directory="Dir_0006_tessdata" Guid="95D7B4E4-CFA2-4FAA-AFA8-E4FE66755F10" Bitness="always64">
+        <File Id="Fil_00310" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\tools\tessdata\README.md" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00311" Directory="Dir_0007_backup_standard" Guid="8D28F9B6-4CF6-4914-8498-AE7725D9FD99" Bitness="always64">
+        <File Id="Fil_00311" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\tools\tessdata\backup_standard\eng.traineddata" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00312" Directory="Dir_0007_backup_standard" Guid="2C2A0A72-F13B-410C-B065-C9BDC3752635" Bitness="always64">
+        <File Id="Fil_00312" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\tools\tessdata\backup_standard\jpn.traineddata" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00313" Directory="Dir_0003_x64" Guid="6CB7E9C0-C15B-4CC5-81D7-D488220F6788" Bitness="always64">
+        <File Id="Fil_00313" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\x64\leptonica-1.85.0.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00314" Directory="Dir_0003_x64" Guid="C03A34E6-494E-4B6C-9B60-E4A392D9569E" Bitness="always64">
+        <File Id="Fil_00314" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\x64\tesseract55.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00315" Directory="Dir_0004_x86" Guid="96678487-CEE5-4D18-9C26-5E76116E6642" Bitness="always64">
+        <File Id="Fil_00315" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\x86\leptonica-1.85.0.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_00316" Directory="Dir_0004_x86" Guid="EEE1CA92-94E4-4108-8CA0-23E723D03B5C" Bitness="always64">
+        <File Id="Fil_00316" Source="C:\Users\KDK26\Desktop\PdfStudio-v0.9.0\src\PdfStudio.Wpf\bin\Release\net10.0-windows\win-x64\publish\x86\tesseract55.dll" KeyPath="yes" />
+      </Component>
     </ComponentGroup>
   </Fragment>
 </Wix>

@@ -103,13 +103,13 @@
                 <MenuItem Header="幅に合わせる(_W)" Command="{Binding ZoomFitWidthCommand}" />
                 <Separator />
                 <MenuItem Header="先頭ページへ(_T)" Command="{Binding FirstPageCommand}"
-                          InputGestureText="Ctrl+Home" />
+                          InputGestureText="Home" />
                 <MenuItem Header="前のページ(_P)" Command="{Binding PrevPageCommand}"
                           InputGestureText="PageUp" />
                 <MenuItem Header="次のページ(_N)" Command="{Binding NextPageCommand}"
                           InputGestureText="PageDown" />
                 <MenuItem Header="最終ページへ(_E)" Command="{Binding LastPageCommand}"
-                          InputGestureText="Ctrl+End" />
+                          InputGestureText="End" />
                 <MenuItem Header="指定ページへ移動(_G)..." Command="{Binding GoToPageCommand}"
                           InputGestureText="Ctrl+G" />
             </MenuItem>
@@ -143,6 +143,9 @@
             <MenuItem Header="注釈(_A)">
                 <MenuItem Header="電子スタンプ(_S)..." Command="{Binding AddStampCommand}" />
                 <MenuItem Header="付箋(コメント)(_N)..." Command="{Binding AddStickyNoteCommand}" />
+            </MenuItem>
+            <MenuItem Header="OCR(_O)">
+                <MenuItem Header="文字認識を実行(_R)..." Command="{Binding PerformOcrCommand}" />
             </MenuItem>
             <MenuItem Header="ヘルプ(_H)">
                 <MenuItem Header="バージョン情報(_A)" Command="{Binding ShowAboutCommand}" />
@@ -446,14 +449,86 @@
                                 BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1"
                                 Effect="{x:Null}">
-                            <Image x:Name="PdfPageImage"
-                                   Source="{Binding ActiveDocument.CurrentPageImage}"
-                                   Stretch="Uniform">
-                                <Image.LayoutTransform>
-                                    <ScaleTransform ScaleX="{Binding ActiveDocument.ZoomLevel}"
-                                                    ScaleY="{Binding ActiveDocument.ZoomLevel}" />
-                                </Image.LayoutTransform>
-                            </Image>
+                            <Grid>
+                                <Image x:Name="PdfPageImage"
+                                       Source="{Binding ActiveDocument.CurrentPageImage}"
+                                       Stretch="Uniform"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Top">
+                                    <Image.LayoutTransform>
+                                        <ScaleTransform ScaleX="{Binding ActiveDocument.ZoomLevel}"
+                                                        ScaleY="{Binding ActiveDocument.ZoomLevel}" />
+                                    </Image.LayoutTransform>
+                                </Image>
+
+                                <!-- 検索ヒットのハイライト矩形オーバーレイ(黄色=全ヒット、オレンジ=選択中) -->
+                                <ItemsControl ItemsSource="{Binding ActiveDocument.PageHighlights}"
+                                              Width="{Binding ActualWidth, ElementName=PdfPageImage}"
+                                              Height="{Binding ActualHeight, ElementName=PdfPageImage}"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Top"
+                                              IsHitTestVisible="False">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left">
+                                                <Setter.Value>
+                                                    <MultiBinding Converter="{StaticResource FractionToPixelConverter}">
+                                                        <Binding Path="Left" />
+                                                        <Binding Path="ActualWidth"
+                                                                 RelativeSource="{RelativeSource AncestorType=Canvas}" />
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="Canvas.Top">
+                                                <Setter.Value>
+                                                    <MultiBinding Converter="{StaticResource FractionToPixelConverter}">
+                                                        <Binding Path="Top" />
+                                                        <Binding Path="ActualHeight"
+                                                                 RelativeSource="{RelativeSource AncestorType=Canvas}" />
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Rectangle StrokeThickness="2">
+                                                <Rectangle.Width>
+                                                    <MultiBinding Converter="{StaticResource FractionToPixelConverter}">
+                                                        <Binding Path="Width" />
+                                                        <Binding Path="ActualWidth"
+                                                                 RelativeSource="{RelativeSource AncestorType=Canvas}" />
+                                                    </MultiBinding>
+                                                </Rectangle.Width>
+                                                <Rectangle.Height>
+                                                    <MultiBinding Converter="{StaticResource FractionToPixelConverter}">
+                                                        <Binding Path="Height" />
+                                                        <Binding Path="ActualHeight"
+                                                                 RelativeSource="{RelativeSource AncestorType=Canvas}" />
+                                                    </MultiBinding>
+                                                </Rectangle.Height>
+                                                <Rectangle.Style>
+                                                    <Style TargetType="Rectangle">
+                                                        <Setter Property="Stroke" Value="#FFD700" />
+                                                        <Setter Property="Fill" Value="#55FFD700" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="Stroke" Value="#FF8C00" />
+                                                                <Setter Property="Fill" Value="#55FF8C00" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Rectangle.Style>
+                                            </Rectangle>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
                         </Border>
                     </Border>
                 </ScrollViewer>

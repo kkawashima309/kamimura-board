@@ -1,0 +1,11 @@
+Noto Sans Japanese (NotoSansJP-Regular.ttf) は SIL Open Font License 1.1
+の下で配布されています。
+
+Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name
+'Source'. Noto is a trademark of Google Inc.
+
+このフォントは商用・非商用を問わず自由に使用・再配布できます。
+詳細なライセンス全文: https://scripts.sil.org/OFL
+
+PdfStudio はこのフォントを日本語テキスト描画(スタンプ・ウォーターマーク等)
+のために同梱しています。

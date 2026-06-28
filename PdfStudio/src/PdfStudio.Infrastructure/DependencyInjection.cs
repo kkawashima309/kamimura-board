@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddSingleton<IPdfSecurityService, PdfSharpSecurityService>();
         services.AddSingleton<IPdfSearchService, PdfPigSearchService>();
         services.AddSingleton<IPdfAnnotationService, PdfSharpAnnotationService>();
+        services.AddSingleton<IPdfOcrService, TesseractOcrService>();
         services.AddSingleton<BatchService>();
         services.AddSingleton<IRecentFilesService, RecentFilesRepository>();
         return services;

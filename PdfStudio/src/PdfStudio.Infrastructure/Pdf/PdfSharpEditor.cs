@@ -39,7 +39,7 @@ public sealed class PdfSharpEditor : IPdfEditor
 
             // ログ: Domain側の回転状態を保存前に記録
             var rotationSummary = string.Join(", ",
-                document.Pages.Select((p, i) => $"[{i}:src={p.SourceIndex},rot={p.Rotation}°]"));
+                document.Pages.Select((p, i) => $"[{i}:idx={p.Index},rot={p.Rotation}°]"));
             _logger.LogInformation(
                 "保存開始: 出力={Out}, Domainページ数={Count}, 状態={State}",
                 outputPath, document.Pages.Count, rotationSummary);
@@ -52,25 +52,20 @@ public sealed class PdfSharpEditor : IPdfEditor
             int addedCount = 0;
             foreach (var pageInfo in document.Pages)
             {
-                // 重要: Index は「現在の表示位置」であり、削除・並び替えのたびに
-                // 振り直される。元ファイルのどのページかは SourceIndex で参照する。
-                // (以前は Index を使っていたため、削除・並び替え後の保存で
-                //  意図しないページが書き出される不具合があった)
-                var srcIndex = pageInfo.SourceIndex;
-                if (srcIndex < 0 || srcIndex >= src.PageCount)
+                if (pageInfo.Index < 0 || pageInfo.Index >= src.PageCount)
                 {
                     _logger.LogWarning(
-                        "保存中: SourceIndex {Index} が範囲外(元PDFは{Count}ページ)、スキップ",
-                        srcIndex, src.PageCount);
+                        "保存中: ページIndex {Index} が範囲外(元PDFは{Count}ページ)、スキップ",
+                        pageInfo.Index, src.PageCount);
                     skippedCount++;
                     continue;
                 }
 
                 // 元PDFのページを追加
-                var addedPage = dst.AddPage(src.Pages[srcIndex]);
+                var addedPage = dst.AddPage(src.Pages[pageInfo.Index]);
 
                 // 回転の反映 — 重要: dst.Pages[末尾] にも改めて設定して確実性を上げる
-                var originalRotate = src.Pages[srcIndex].Rotate;
+                var originalRotate = src.Pages[pageInfo.Index].Rotate;
                 var finalRotate = ((originalRotate + pageInfo.Rotation) % 360 + 360) % 360;
 
                 addedPage.Rotate = finalRotate;
@@ -354,13 +349,9 @@ public sealed class PdfSharpEditor : IPdfEditor
             var newPage = new PdfPage
             {
                 Index = insertAtIndex + i,
-                // 挿入直後は物理ファイル書き換え後に再読み込みされるまで
-                // 元ファイル上の対応ページが存在しないため -1。
-                // Rotation は物理ページ自体が保持しているので 0(追加回転なし)。
-                SourceIndex = -1,
                 Width = srcPage.Width.Point,
                 Height = srcPage.Height.Point,
-                Rotation = 0,
+                Rotation = srcPage.Rotate,
             };
             document.Pages.Insert(insertAtIndex + i, newPage);
         }
@@ -517,8 +508,6 @@ public sealed class PdfSharpEditor : IPdfEditor
             var newPage = new PdfPage
             {
                 Index = insertAtIndex,
-                // 物理ファイル書き換え後に再読み込みされるまで対応ページなし
-                SourceIndex = -1,
                 Width = widthPt,
                 Height = heightPt,
                 Rotation = 0,
@@ -722,7 +711,7 @@ public sealed class PdfSharpEditor : IPdfEditor
             if (!File.Exists(sourceFilePath))
                 throw new FileNotFoundException("元PDFが見つかりません。", sourceFilePath);
 
-            using var pdfDoc = PdfReader.Open(sourceFilePath, PdfDocumentOpenMode.Modify);
+            using var pdfDoc = PdfDocumentOpener.OpenForEdit(sourceFilePath, out _);
             var color = ParseColor(options.ColorHex);
             var brush = new PdfSharp.Drawing.XSolidBrush(
                 PdfSharp.Drawing.XColor.FromArgb(
@@ -766,7 +755,7 @@ public sealed class PdfSharpEditor : IPdfEditor
             if (!File.Exists(sourceFilePath))
                 throw new FileNotFoundException("元PDFが見つかりません。", sourceFilePath);
 
-            using var pdfDoc = PdfReader.Open(sourceFilePath, PdfDocumentOpenMode.Modify);
+            using var pdfDoc = PdfDocumentOpener.OpenForEdit(sourceFilePath, out _);
             var brush = PdfSharp.Drawing.XBrushes.Black;
             var font = FontHelper.Create(options.FontSize);
 
@@ -814,7 +803,7 @@ public sealed class PdfSharpEditor : IPdfEditor
             if (!File.Exists(sourceFilePath))
                 throw new FileNotFoundException("元PDFが見つかりません。", sourceFilePath);
 
-            using var pdfDoc = PdfReader.Open(sourceFilePath, PdfDocumentOpenMode.Modify);
+            using var pdfDoc = PdfDocumentOpener.OpenForEdit(sourceFilePath, out _);
             var brush = PdfSharp.Drawing.XBrushes.Black;
             var font = FontHelper.Create(options.FontSize);
 

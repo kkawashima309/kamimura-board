@@ -62,6 +62,8 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
 .acard-foot button{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;font-family:inherit;background:white;}
 .btn-del{color:var(--red);border-color:var(--red);}
 .btn-del:active{background:var(--red-l);}
+.btn-edit{color:var(--accent);border-color:var(--accent);}
+.btn-edit:active{background:var(--accent-l);}
 .btn-dm{color:var(--green);border-color:var(--green);margin-left:auto;}
 .btn-dm:active{background:var(--green-l);}
 
@@ -171,8 +173,8 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
   <div class="login-wrap">
     <div class="login-card">
       <div class="login-logo">神村電機工業株式会社</div>
-      <div class="login-title">掲示板 管理者ログイン</div>
-      <div class="login-sub">管理者専用画面です。</div>
+      <div class="login-title">掲示板 管理ログイン</div>
+      <div class="login-sub">管理者・投稿権限のある方専用の画面です。</div>
       <label class="form-label">メールアドレス</label>
       <input class="form-input" id="aEmail" type="email" placeholder="管理者メールアドレス">
       <label class="form-label">パスワード</label>
@@ -234,9 +236,48 @@ let fileEntries = [];  // {name, url, size}
 let bnEntries   = [];  // {label, date, url}
 let activeDmPost   = null;
 let activeDmUserId = null;
+let editingPostId  = null;   // 編集中の投稿ID（nullなら新規）
+let myRole         = 'admin';// 'admin' | 'poster'
 
-const TLBL   = {notice:'お知らせ',report:'社内報',event:'行事・イベント',biz:'業務連絡',useful:'お役立ち情報',other:'その他'};
-const TCLS   = {notice:'tag-notice',report:'tag-report',event:'tag-event',biz:'tag-biz',useful:'tag-useful',other:'tag-other'};
+/* ─── カテゴリ（Firestore config/board で管理）─── */
+const DEFAULT_CATS = [
+  {id:'notice', label:'お知らせ',      color:'#1b4f72'},
+  {id:'report', label:'社内報',        color:'#7b5ea7'},
+  {id:'event',  label:'行事・イベント', color:'#8a5c0a'},
+  {id:'biz',    label:'業務連絡',      color:'#1e6b45'},
+  {id:'useful', label:'お役立ち情報',   color:'#b5388a'},
+  {id:'other',  label:'その他',        color:'#555555'},
+];
+const CAT_SWATCHES = ['#1b4f72','#1e6b45','#8a5c0a','#7b5ea7','#b5388a','#b03030','#0e7490','#555555'];
+let CATEGORIES   = DEFAULT_CATS.slice();
+let CATMAP       = {};
+let POSTABLE_DEPTS = [];
+const DEPTS = ['1G','2G','3G','技術G','品質保証G','営業G','管理G','取締役会'];
+
+function rebuildCatMaps(){ CATMAP={}; CATEGORIES.forEach(c=>CATMAP[c.id]=c); }
+rebuildCatMaps();
+function catLabel(id){ return CATMAP[id]?.label || id || 'その他'; }
+function catColor(id){ return CATMAP[id]?.color || '#555555'; }
+function catStyle(id){ const c=catColor(id); return `background:${c}22;color:${c};`; }
+// 既存コードとの互換用（ラベル参照のみ残す）
+const TLBL = new Proxy({}, { get:(_,k)=>catLabel(k) });
+
+async function loadConfig(seedIfAdmin){
+  try{
+    const ref  = db.collection('config').doc('board');
+    const snap = await ref.get();
+    if (snap.exists){
+      const d = snap.data();
+      if (Array.isArray(d.categories) && d.categories.length) CATEGORIES = d.categories;
+      POSTABLE_DEPTS = Array.isArray(d.postableDepts) ? d.postableDepts : [];
+    } else if (seedIfAdmin){
+      await ref.set({ categories: DEFAULT_CATS, postableDepts: [] });
+      CATEGORIES = DEFAULT_CATS.slice(); POSTABLE_DEPTS = [];
+    }
+    rebuildCatMaps();
+  }catch(e){ console.warn('config読み込みエラー:', e); }
+}
+
 const AVCOLS = ['#1b4f72','#1e6b45','#8a5c0a','#7b5ea7','#b03030'];
 
 const $    = id => document.getElementById(id);
@@ -254,17 +295,41 @@ auth.onAuthStateChanged(async user => {
   if (!user) { switchScreen('screenLogin'); return; }
   try {
     const snap = await db.collection('users').doc(user.uid).get();
-    if (!snap.exists || !snap.data().isAdmin) {
+    if (!snap.exists) { await auth.signOut(); showErr('aErr','ユーザー情報が見つかりません'); return; }
+    const u = snap.data();
+    const isFullAdmin = u.isAdmin === true;
+    await loadConfig(isFullAdmin);
+    const isPoster = !isFullAdmin && u.status === 'approved' && POSTABLE_DEPTS.includes(u.dept);
+    if (!isFullAdmin && !isPoster) {
       await auth.signOut();
-      showErr('aErr','管理者権限がありません');
+      showErr('aErr','この画面を利用する権限がありません');
       return;
     }
-    adminUser = { uid: user.uid, ...snap.data() };
+    adminUser = { uid: user.uid, ...u };
+    myRole = isFullAdmin ? 'admin' : 'poster';
+    applyRoleUI();
     switchScreen('screenAdmin');
     loadPostList();
-    updateBadges();
+    if (myRole === 'admin') updateBadges();
   } catch(e) { console.error(e); showErr('aErr', e.message); await auth.signOut(); }
 });
+
+/* ─── 権限に応じてUIを切り替え ─── */
+function applyRoleUI() {
+  const isAdmin = myRole === 'admin';
+  // 簡易モード（poster）では一部タブを非表示
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    const t = b.dataset.tab;
+    const adminOnly = (t==='users' || t==='dms' || t==='settings');
+    b.style.display = (adminOnly && !isAdmin) ? 'none' : '';
+  });
+  const sub = document.querySelector('.admin-header-sub');
+  if (sub) sub.textContent = isAdmin
+    ? '神村電機工業株式会社 総務・川島'
+    : `${adminUser.name||''}（${adminUser.dept||''}）｜投稿モード`;
+  const title = document.querySelector('.admin-header-title');
+  if (title) title.textContent = isAdmin ? '掲示板 管理者画面' : '掲示板 投稿画面';
+}
 
 /* ─── admin login ─── */
 async function doAdminLogin() {
@@ -297,7 +362,7 @@ function switchTab(btn) {
     _postListenerUnsubscribe(); _postListenerUnsubscribe = null;
   }
   if (btn.dataset.tab==='posts')    loadPostList();
-  if (btn.dataset.tab==='new')      renderNewPostForm();
+  if (btn.dataset.tab==='new')      { editingPostId=null; renderNewPostForm(); }
   if (btn.dataset.tab==='users')    loadUserList();
   if (btn.dataset.tab==='dms')      loadDMPanel();
   if (btn.dataset.tab==='settings') renderSettingsPanel();
@@ -340,8 +405,11 @@ async function loadPostList() {
   $('postList').innerHTML='<div class="loading-msg">読み込み中...</div>';
   if (_postListenerUnsubscribe) { _postListenerUnsubscribe(); _postListenerUnsubscribe = null; }
   try {
-    const userSnap = await db.collection('users').where('status','==','approved').get();
-    const approvedUsers = userSnap.docs.map(d=>({uid:d.id,...d.data()}));
+    let approvedUsers = [];
+    if (myRole==='admin') {
+      const userSnap = await db.collection('users').where('status','==','approved').get();
+      approvedUsers = userSnap.docs.map(d=>({uid:d.id,...d.data()}));
+    }
     const totalUsers = approvedUsers.length;
 
     _postListenerUnsubscribe = db.collection('posts').orderBy('createdAt','desc')
@@ -354,16 +422,21 @@ async function loadPostList() {
           const readCount = readBy.length;
           const unreadUsers = approvedUsers.filter(u=>!readBy.includes(u.uid));
           const readPct = totalUsers>0 ? Math.round(readCount/totalUsers*100) : 0;
+          const isAdmin = myRole==='admin';
+          const isOwner = p.authorUid && p.authorUid===adminUser.uid;
+          const canEdit = isAdmin || isOwner;
+          const authorLabel = p.authorName ? `${esc(p.authorName)}${p.authorDept?`（${esc(p.authorDept)}）`:''}` : '総務（管理者）';
           return `
           <div class="acard">
             <div class="acard-top">
-              <span class="atag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
+              <span class="atag" style="${catStyle(p.cat)}">${esc(catLabel(p.cat))}</span>
               ${p.pinned?`<span style="font-size:12px">📌</span>`:''}
-              <span style="font-size:11px;color:var(--text3);margin-left:auto;">${fmtTs(p.createdAt)}</span>
+              <span style="font-size:11px;color:var(--text3);margin-left:auto;">${fmtTs(p.createdAt)}${p.updatedAt?' ・編集済':''}</span>
             </div>
             <div class="acard-title">${esc(p.title)}</div>
             <div class="acard-body">${esc((p.body||'').replace(/\n/g,' '))}</div>
-            <div class="acard-meta">${(p.files||[]).length?`📎 ${p.files.map(f=>esc(f.name)).join('・')}&emsp;`:''}${(p.backNumbers||[]).length?`📚 バックナンバー${p.backNumbers.length}件`:''}</div>
+            <div class="acard-meta">投稿者：${authorLabel}${(p.files||[]).length?`　📎 ${p.files.map(f=>esc(f.name)).join('・')}`:''}${(p.backNumbers||[]).length?`　📚 バックナンバー${p.backNumbers.length}件`:''}</div>
+            ${isAdmin?`
             <div style="padding:8px 14px;border-top:1px solid var(--border);">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
                 <span style="font-size:11px;font-weight:700;color:var(--text2);">既読状況</span>
@@ -377,10 +450,11 @@ async function loadPostList() {
                 <span style="font-size:10px;color:var(--text3);">未読：</span>
                 ${unreadUsers.map(u=>`<span style="font-size:10px;background:var(--red-l);color:var(--red);padding:1px 6px;border-radius:10px;margin:2px 2px 0;display:inline-block;">${esc(u.name)}</span>`).join('')}
               </div>`:'<div style="margin-top:4px;font-size:10px;color:var(--green);">✓ 全員既読</div>'}
-            </div>
+            </div>`:''}
             <div class="acard-foot">
-              <button class="btn-del" onclick="deletePost('${p.id}')">削除</button>
-              <button class="btn-dm"  onclick="goToDM('${p.id}')">問い合わせを見る</button>
+              ${canEdit?`<button class="btn-edit" onclick="startEditPost('${p.id}')">✎ 編集</button>`:''}
+              ${canEdit?`<button class="btn-del" onclick="deletePost('${p.id}')">削除</button>`:''}
+              ${isAdmin?`<button class="btn-dm"  onclick="goToDM('${p.id}')">問い合わせを見る</button>`:''}
             </div>
           </div>`;
         }).join('');
@@ -390,29 +464,52 @@ async function loadPostList() {
   } catch(e) { $('postList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
 }
 
-/* ─── new post ─── */
+/* ─── new post / edit ─── */
+let editDraft   = null;   // 編集時の {title, body, pin}
+let newCatColor = CAT_SWATCHES[0];
+
 function renderNewPostForm() {
-  fileEntries=[]; bnEntries=[]; selCat='notice';
+  if (!editingPostId) { fileEntries=[]; bnEntries=[]; selCat='notice'; editDraft=null; }
+  if (!CATMAP[selCat]) selCat = CATEGORIES[0]?.id || 'notice';
+  const isEdit = !!editingPostId;
+  const d = editDraft || {title:'', body:'', pin:false};
+
+  const catBtns = CATEGORIES.map(c=>{
+    const on = c.id===selCat;
+    const st = on ? `background:${c.color}22;border-color:${c.color};color:${c.color};` : '';
+    return `<button class="csel" data-cat="${c.id}" onclick="selectCat(this)" style="${st}">${esc(c.label)}</button>`;
+  }).join('');
+
+  // カテゴリ管理（管理者のみ）
+  const catMgmt = (myRole==='admin') ? `
+    <div class="form-card" style="margin-bottom:12px;">
+      <div class="form-title" style="margin-bottom:10px;font-size:14px;">カテゴリ管理</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">追加したカテゴリは社員用アプリにも反映されます。</div>
+      <div class="file-rows" id="catMgmtRows"></div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+        <input class="form-input" id="newCatLabel" type="text" placeholder="新しいカテゴリ名 例：安全衛生" style="margin-bottom:0;">
+        <div style="font-size:11px;color:var(--text3);">色を選択</div>
+        <div id="catSwatchRow" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <button onclick="addCategory()" style="align-self:flex-start;padding:7px 16px;border:1.5px solid var(--accent);border-radius:20px;background:var(--accent-l);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">＋ カテゴリを追加</button>
+      </div>
+    </div>` : '';
+
+  $('newPostForm').parentElement.innerHTML = `${catMgmt}<div class="form-card" id="newPostForm"></div>`;
   $('newPostForm').innerHTML=`
-    <div class="form-title">新規投稿</div>
+    ${isEdit?`<div class="form-title" style="display:flex;align-items:center;gap:10px;">投稿を編集
+      <button onclick="cancelEdit()" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:16px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:inherit;">編集をやめる</button></div>`
+      :`<div class="form-title">新規投稿</div>`}
     <div class="form-row">
       <span class="form-row-label">カテゴリ</span>
-      <div class="cat-row" id="catRow">
-        <button class="csel sel-notice" data-cat="notice" onclick="selectCat(this)">お知らせ</button>
-        <button class="csel" data-cat="report" onclick="selectCat(this)">社内報</button>
-        <button class="csel" data-cat="event"  onclick="selectCat(this)">行事・イベント</button>
-        <button class="csel" data-cat="biz"    onclick="selectCat(this)">業務連絡</button>
-        <button class="csel" data-cat="useful" onclick="selectCat(this)">お役立ち情報</button>
-        <button class="csel" data-cat="other"  onclick="selectCat(this)">その他</button>
-      </div>
+      <div class="cat-row" id="catRow">${catBtns}</div>
     </div>
     <div class="form-row">
       <span class="form-row-label">タイトル</span>
-      <input class="form-input" id="fTitle" type="text" placeholder="タイトルを入力">
+      <input class="form-input" id="fTitle" type="text" placeholder="タイトルを入力" value="${esc(d.title)}">
     </div>
     <div class="form-row">
       <span class="form-row-label">本文</span>
-      <textarea class="form-textarea" id="fBody" placeholder="本文を入力（改行そのまま反映）"></textarea>
+      <textarea class="form-textarea" id="fBody" placeholder="本文を入力（改行そのまま反映）">${esc(d.body)}</textarea>
     </div>
     <div class="form-row" style="margin-top:14px;">
       <span class="form-row-label">ファイルリンク（OneDrive・Google Driveの共有リンク）</span>
@@ -431,20 +528,117 @@ function renderNewPostForm() {
       <div class="file-rows" id="bnRows"></div>
     </div>
     <div class="form-row">
-      <div class="pin-row"><input type="checkbox" id="fPin"><label for="fPin">📌 ピン留め（重要・常時上部に表示）</label></div>
+      <div class="pin-row"><input type="checkbox" id="fPin" ${d.pin?'checked':''}><label for="fPin">📌 ピン留め（重要・常時上部に表示）</label></div>
+    </div>
+    <div class="form-row">
+      <div class="pin-row"><input type="checkbox" id="fNotify" ${isEdit?'':'checked'} style="accent-color:var(--accent);"><label for="fNotify">📣 登録メンバーへ通知する（メール）</label></div>
+      ${isEdit?`<div class="pin-row" style="margin-top:8px;"><input type="checkbox" id="fResetRead" style="accent-color:var(--red);"><label for="fResetRead">🔄 全員を未読に戻す（重要な修正のとき）</label></div>`:''}
     </div>
     <div class="err-msg" id="postErr"></div>
-    <button class="primary-btn" id="postSubmitBtn" onclick="submitPost()" style="margin-top:16px;">投稿する</button>
+    <button class="primary-btn" id="postSubmitBtn" onclick="submitPost()" style="margin-top:16px;">${isEdit?'更新する':'投稿する'}</button>
   `;
+  renderFileRows(); renderBNRows();
+  if (myRole==='admin') renderCatMgmt();
 }
 
 function selectCat(btn) {
   selCat=btn.dataset.cat;
-  document.querySelectorAll('#catRow .csel').forEach(b=>{b.className='csel';});
-  btn.classList.add(`sel-${selCat}`);
-  // お役立ち・その他は専用クラスがないためカスタムスタイルを適用
-  if (selCat==='useful') btn.style.cssText='background:#fde8f5;border-color:#b5388a;color:#b5388a;';
-  else if (selCat==='other') btn.style.cssText='background:#f0f0f0;border-color:#555;color:#555;';
+  document.querySelectorAll('#catRow .csel').forEach(b=>{ b.style.cssText=''; });
+  const c=catColor(selCat);
+  btn.style.cssText=`background:${c}22;border-color:${c};color:${c};`;
+}
+
+function cancelEdit() {
+  editingPostId=null; editDraft=null;
+  document.querySelector('[data-tab="posts"]').click();
+}
+
+/* ─── カテゴリ管理（管理者）─── */
+function renderCatMgmt() {
+  const rows = $('catMgmtRows'); if (!rows) return;
+  rows.innerHTML = CATEGORIES.map(c=>`
+    <div class="file-row">
+      <span style="width:14px;height:14px;border-radius:4px;background:${c.color};flex-shrink:0;"></span>
+      <span class="file-row-name">${esc(c.label)}</span>
+      <button class="file-rm" onclick="deleteCategory('${c.id}')" title="削除">✕</button>
+    </div>`).join('');
+  const sw = $('catSwatchRow'); if (!sw) return;
+  sw.innerHTML = CAT_SWATCHES.map(col=>`
+    <span onclick="newCatColor='${col}';renderCatMgmt()"
+      style="width:26px;height:26px;border-radius:50%;background:${col};cursor:pointer;border:3px solid ${col===newCatColor?'var(--text1)':'transparent'};box-sizing:border-box;"></span>`).join('');
+}
+
+async function addCategory() {
+  const label = v('newCatLabel');
+  if (!label) return alert('カテゴリ名を入力してください');
+  if (CATEGORIES.some(c=>c.label===label)) return alert('同じ名前のカテゴリが既にあります');
+  const id = 'c'+Date.now().toString(36);
+  CATEGORIES = [...CATEGORIES, {id, label, color:newCatColor}];
+  rebuildCatMaps();
+  try {
+    await saveCategories();
+    renderNewPostForm();
+  } catch(e) { alert('保存に失敗しました: '+e.message); }
+}
+
+async function deleteCategory(id) {
+  if (CATEGORIES.length<=1) return alert('カテゴリは最低1つ必要です');
+  let used;
+  try { used = await db.collection('posts').where('cat','==',id).get(); }
+  catch(e){ return alert('確認に失敗しました: '+e.message); }
+  const remaining = CATEGORIES.filter(c=>c.id!==id);
+  const fallback  = remaining[0].id;
+  let msg = `カテゴリ「${catLabel(id)}」を削除しますか？`;
+  if (used.size>0) msg += `\n\nこのカテゴリの投稿が${used.size}件あります。削除後は「${catLabel(fallback)}」へ移動します。`;
+  if (!confirm(msg)) return;
+  try {
+    if (used.size>0) {
+      const batch = db.batch();
+      used.docs.forEach(doc=>batch.update(doc.ref,{cat:fallback}));
+      await batch.commit();
+    }
+    CATEGORIES = remaining; rebuildCatMaps();
+    await saveCategories();
+    if (selCat===id) selCat=fallback;
+    renderNewPostForm();
+  } catch(e) { alert('削除に失敗しました: '+e.message); }
+}
+
+async function saveCategories() {
+  await db.collection('config').doc('board').set({categories:CATEGORIES}, {merge:true});
+}
+
+async function startEditPost(id) {
+  try {
+    const snap = await db.collection('posts').doc(id).get();
+    if (!snap.exists) return alert('投稿が見つかりません');
+    const p = snap.data();
+    if (!(myRole==='admin' || p.authorUid===adminUser.uid)) return alert('この投稿を編集する権限がありません');
+    editingPostId = id;
+    selCat       = p.cat || CATEGORIES[0].id;
+    fileEntries  = (p.files||[]).map(f=>({...f}));
+    bnEntries    = (p.backNumbers||[]).map(b=>({...b}));
+    editDraft    = { title:p.title||'', body:p.body||'', pin:!!p.pinned };
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab==='new'));
+    ['tabPosts','tabNew','tabUsers','tabDms','tabSettings'].forEach(t=>$(t).style.display='none');
+    $('tabNew').style.display='';
+    if (_postListenerUnsubscribe){ _postListenerUnsubscribe(); _postListenerUnsubscribe=null; }
+    renderNewPostForm();
+    window.scrollTo(0,0);
+  } catch(e) { alert('読み込みエラー: '+e.message); }
+}
+
+async function deletePost(id) {
+  if (!confirm('この投稿を削除しますか？\nこの操作は元に戻せません。')) return;
+  try {
+    await db.collection('posts').doc(id).delete();
+    // 紐づく問い合わせスレッドも削除（管理者のみ）
+    if (myRole==='admin') {
+      const ts = await db.collection('threads').where('postId','==',id).get();
+      if (ts.size>0) { const b=db.batch(); ts.docs.forEach(d=>b.delete(d.ref)); await b.commit(); }
+    }
+    if (myRole==='admin') updateBadges();
+  } catch(e) { alert('削除に失敗しました: '+e.message); }
 }
 
 function addFile() {
@@ -484,58 +678,73 @@ function renderBNRows() {
 async function submitPost() {
   hideErr('postErr');
   const title=v('fTitle'), body=v('fBody'), pin=$('fPin').checked;
+  const notify = $('fNotify') ? $('fNotify').checked : false;
   if (!title||!body) return showErr('postErr','タイトルと本文を入力してください');
-  const btn=$('postSubmitBtn'); btn.disabled=true; btn.textContent='投稿中...';
+  const isEdit = !!editingPostId;
+  const btn=$('postSubmitBtn'); btn.disabled=true; btn.textContent= isEdit?'更新中...':'投稿中...';
   try {
-    await db.collection('posts').add({
-      cat:selCat, title, body, pinned:pin,
-      files:[...fileEntries], backNumbers:[...bnEntries],
-      readBy:[], createdAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    // Teams通知を送信（設定済みの場合のみ）
-    await notifyTeams({ cat:selCat, title, body, pinned:pin });
-    // 行事・イベントはカレンダーダウンロードを促す
-    if (selCat === 'event') {
-      if (confirm(`「${title}」をOutlookカレンダーに追加しますか？`)) {
-        downloadICS(title, body);
-      }
+    if (isEdit) {
+      const upd = {
+        cat:selCat, title, body, pinned:pin,
+        files:[...fileEntries], backNumbers:[...bnEntries],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if ($('fResetRead') && $('fResetRead').checked) upd.readBy = [];
+      await db.collection('posts').doc(editingPostId).update(upd);
+      if (notify) await notifyNewPost({ cat:selCat, title, body, pinned:pin });
+      editingPostId = null; editDraft = null;
+      alert('更新しました！');
     } else {
-      alert('投稿しました！');
+      await db.collection('posts').add({
+        cat:selCat, title, body, pinned:pin,
+        files:[...fileEntries], backNumbers:[...bnEntries],
+        readBy:[],
+        authorUid: adminUser.uid, authorName: adminUser.name||'', authorDept: adminUser.dept||'',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      if (notify) await notifyNewPost({ cat:selCat, title, body, pinned:pin });
+      if (selCat === 'event') {
+        if (confirm(`「${title}」をOutlookカレンダーに追加しますか？`)) downloadICS(title, body);
+      } else {
+        alert('投稿しました！');
+      }
     }
     document.querySelector('[data-tab="posts"]').click();
   } catch(e) {
-    btn.disabled=false; btn.textContent='投稿する';
-    showErr('postErr','投稿に失敗しました: '+e.message);
+    btn.disabled=false; btn.textContent= isEdit?'更新する':'投稿する';
+    showErr('postErr',(isEdit?'更新':'投稿')+'に失敗しました: '+e.message);
   }
 }
 
-/* ─── Microsoft Teams 通知 ─── */
-async function notifyTeams(post) {
-  const webhookUrl = localStorage.getItem('teams_webhook_url') || '';
+/* ─── 新規投稿の通知（Webhook → Power Automateで全員メール等）─── */
+function getNotifyWebhook() {
+  return localStorage.getItem('notify_webhook_url') || localStorage.getItem('teams_webhook_url') || '';
+}
+async function notifyNewPost(post) {
+  const webhookUrl = getNotifyWebhook();
   if (!webhookUrl) return;
-  const catLabel = TLBL[post.cat] || post.cat;
-  const preview  = (post.body||'').length > 160 ? post.body.substring(0,160)+'…' : post.body;
-  const payload  = {
-    type: 'message',
-    attachments: [{
-      contentType: 'application/vnd.microsoft.card.adaptive',
-      contentUrl: null,
-      content: {
-        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-        type: 'AdaptiveCard',
-        version: '1.4',
-        body: [
-          { type:'TextBlock', text:'📋 神村電機工業 社内掲示板', size:'Small', color:'Accent', weight:'Bolder' },
-          { type:'TextBlock', text: post.pinned ? `📌 ${post.title}` : post.title,
-            size:'Large', weight:'Bolder', wrap:true },
-          { type:'FactSet', facts:[
-            { title:'カテゴリ', value: catLabel },
-            { title:'投稿日',   value: new Date().toLocaleDateString('ja-JP') }
-          ]},
-          { type:'TextBlock', text: preview, wrap:true, spacing:'Small' }
-        ]
-      }
-    }]
+  const catName = catLabel(post.cat);
+  const dateStr = new Date().toLocaleDateString('ja-JP');
+  const titleLine = post.pinned ? `📌 ${post.title}` : post.title;
+  const text =
+`神村電機工業 社内掲示板に新しい投稿があります。
+
+【${catName}】${titleLine}
+投稿日：${dateStr}
+
+${post.body||''}
+
+— 社内掲示板アプリで全文をご確認ください。`;
+  // Power Automate（HTTP要求トリガー）／その他Webhookで受け取れる汎用JSON
+  const payload = {
+    type: 'new_post',
+    title: post.title,
+    titleLine,
+    category: catName,
+    date: dateStr,
+    pinned: !!post.pinned,
+    body: post.body || '',
+    text
   };
   try {
     await fetch(webhookUrl, {
@@ -544,7 +753,7 @@ async function notifyTeams(post) {
       body: JSON.stringify(payload)
     });
   } catch(e) {
-    console.warn('Teams通知の送信に失敗しました:', e);
+    console.warn('通知Webhookの送信に失敗しました:', e);
   }
 }
 
@@ -589,7 +798,7 @@ function downloadICS(title, description) {
 
 /* ─── M365設定パネル ─── */
 function renderSettingsPanel() {
-  const webhookUrl = localStorage.getItem('teams_webhook_url') || '';
+  const webhookUrl = getNotifyWebhook();
   const isSet      = webhookUrl.length > 0;
   $('settingsPanel').innerHTML = `
     <div class="settings-card">
@@ -598,20 +807,27 @@ function renderSettingsPanel() {
 
       <div class="settings-section">
         <div class="settings-section-title">
-          💬 Microsoft Teams 通知
+          📣 新規投稿の通知（登録メンバーへメール）
           <span class="settings-status ${isSet?'st-set':'st-unset'}">${isSet?'設定済み':'未設定'}</span>
         </div>
-        <div class="howto-step"><div class="howto-num">1</div><div class="howto-text">Teamsで通知を受け取りたい<b>チャンネル</b>を開く</div></div>
-        <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">チャンネル名の右 ⋯ → <b>コネクタ</b> → <b>Incoming Webhook</b> を追加</div></div>
-        <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">名前を入力（例：社内掲示板）して <b>作成</b> → 表示されたURLをコピー</div></div>
-        <div class="howto-step"><div class="howto-num">4</div><div class="howto-text">下のフィールドに貼り付けて保存</div></div>
-        <label class="form-label" style="margin-top:12px;">Incoming Webhook URL</label>
+        <div style="font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:12px;">
+          投稿時に「📣 登録メンバーへ通知する」にチェックすると、ここで設定したURLへ投稿内容が送られます。<br>
+          <b>Power Automate（Microsoft 365付属）</b>で「HTTP要求を受信したとき」→「Outlookでメール送信」のフローを作ると、<b>追加費用なし・通数制限なし</b>で全員に自動メールできます。
+        </div>
+        <div class="howto-step"><div class="howto-num">1</div><div class="howto-text"><a href="https://make.powerautomate.com/" target="_blank" rel="noopener" style="color:var(--accent);">make.powerautomate.com</a> で「<b>インスタント クラウド フロー</b>」を新規作成 → トリガーに「<b>HTTP要求の受信時</b>」を選択</div></div>
+        <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">要求本文のJSONスキーマに <code>title</code> <code>category</code> <code>text</code> を含めて保存（保存するとURLが発行されます）</div></div>
+        <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">次のアクションに「<b>Outlook → メールを送信(V2)</b>」を追加。宛先に配布リスト（例：全社員グループ）、件名に <code>【掲示板】@{triggerBody()?['title']}</code>、本文に <code>@{triggerBody()?['text']}</code> を入れる</div></div>
+        <div class="howto-step"><div class="howto-num">4</div><div class="howto-text">トリガーで発行された <b>HTTP POST URL</b> をコピーして、下に貼り付けて保存</div></div>
+        <label class="form-label" style="margin-top:12px;">通知用 Webhook URL（Power AutomateのHTTP POST URL）</label>
         <input class="form-input" id="sTeamsUrl" type="url"
-          placeholder="https://xxxxx.webhook.office.com/webhookb2/..."
+          placeholder="https://prod-XX.japaneast.logic.azure.com:443/workflows/..."
           value="${esc(webhookUrl)}">
         <button class="settings-save-btn" onclick="saveTeamsWebhook()">保存する</button>
         ${isSet?`<button class="settings-clear-btn" onclick="clearTeamsWebhook()">削除</button>`:''}
         <div id="teamsMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-top:10px;">
+          ※ Teamsチャンネルへ流したい場合は、Power Automateのアクションを「Teams → メッセージを投稿」に変えるだけでOKです（旧Incoming Webhookコネクタは Microsoft が提供終了済みのため動きません）。
+        </div>
       </div>
 
       <div class="settings-section">
@@ -659,12 +875,14 @@ function saveTeamsWebhook() {
     showTeamsMsg('URLが正しくありません（https:// で始まるURLを入力してください）', 'red');
     return;
   }
-  localStorage.setItem('teams_webhook_url', url);
-  showTeamsMsg(url ? '保存しました。次回の投稿からTeamsに通知されます。' : 'URLを削除しました。', 'green');
+  localStorage.setItem('notify_webhook_url', url);
+  localStorage.removeItem('teams_webhook_url'); // 旧キーは整理
+  showTeamsMsg(url ? '保存しました。次回の投稿で「通知する」にチェックすると送信されます。' : 'URLを削除しました。', 'green');
   setTimeout(renderSettingsPanel, 1200);
 }
 
 function clearTeamsWebhook() {
+  localStorage.removeItem('notify_webhook_url');
   localStorage.removeItem('teams_webhook_url');
   renderSettingsPanel();
 }
@@ -700,6 +918,35 @@ function setUF(btn) {
   loadUserList();
 }
 
+function deptPostPanelHTML() {
+  const rows = DEPTS.map((d,i)=>`
+    <label style="display:flex;align-items:center;gap:8px;padding:5px 4px;font-size:13px;cursor:pointer;">
+      <input type="checkbox" id="pd_${i}" ${POSTABLE_DEPTS.includes(d)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent);">
+      ${esc(d)}
+    </label>`).join('');
+  return `
+    <div class="user-card" style="margin-bottom:12px;border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent),var(--shadow);">
+      <div style="padding:12px 14px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;">📝 投稿できる部署</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:10px;">
+          チェックした部署の<b>承認済みメンバー</b>は、この管理画面に「投稿モード」でログインでき、新規投稿と自分の投稿の編集・削除ができます（社員承認・問い合わせ・設定は管理者のみ）。
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">${rows}</div>
+        <button class="settings-save-btn" style="margin-top:12px;" onclick="savePostableDepts()">保存する</button>
+        <span id="pdMsg" style="font-size:12px;margin-left:10px;color:var(--green);display:none;">保存しました</span>
+      </div>
+    </div>`;
+}
+
+async function savePostableDepts() {
+  const sel = DEPTS.filter((d,i)=>$(`pd_${i}`)?.checked);
+  try {
+    await db.collection('config').doc('board').set({postableDepts:sel}, {merge:true});
+    POSTABLE_DEPTS = sel;
+    const m=$('pdMsg'); if(m){ m.style.display='inline'; setTimeout(()=>m.style.display='none',1500); }
+  } catch(e) { alert('保存に失敗しました: '+e.message); }
+}
+
 async function loadUserList() {
   $('userList').innerHTML='<div class="loading-msg">読み込み中...</div>';
   try {
@@ -707,8 +954,9 @@ async function loadUserList() {
     let users=snap.docs.map(d=>({uid:d.id,...d.data()}));
     if (ufCurrent!=='all') users=users.filter(u=>u.status===ufCurrent);
     users.sort((a,b)=>a.status==='pending'?-1:b.status==='pending'?1:0);
-    if (!users.length){$('userList').innerHTML='<div class="empty-state">該当するユーザーはいません</div>';return;}
-    $('userList').innerHTML=users.map(u=>`
+    const listHTML = !users.length
+      ? '<div class="empty-state">該当するユーザーはいません</div>'
+      : users.map(u=>`
       <div class="user-card${u.status==='pending'?' pending':''}">
         <div class="user-info">
           <div class="user-avatar" style="background:${avColor(u.name)}">${u.name.charAt(0)}</div>
@@ -724,6 +972,7 @@ async function loadUserList() {
           <button class="btn-del" style="margin-left:auto;" onclick="deleteUser('${u.uid}','${esc(u.name)}')">🗑 削除</button>
         </div>
       </div>`).join('');
+    $('userList').innerHTML = deptPostPanelHTML() + listHTML;
     updateBadges();
   } catch(e) { $('userList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
 }
@@ -860,6 +1109,10 @@ function renderDMWin() {
         ${isResolved?'background:var(--surface2);color:var(--text2);border-color:var(--border2);':'background:var(--green-l);color:var(--green);border-color:var(--green);'}">
         ${isResolved?'✎ 解決を取り消す':'✓ 解決済みにする'}
       </button>
+      <button onclick="deleteThread('${thread.id}')"
+        style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--red);cursor:pointer;font-family:inherit;background:white;color:var(--red);">
+        🗑 削除
+      </button>
     </div>`;
 
   const threadEl = $('adminDmThread');
@@ -898,6 +1151,27 @@ async function toggleResolved(threadId, currentlyResolved) {
     renderDMWin();
     updateBadges();
   } catch(e) { alert('更新に失敗しました'); }
+}
+
+async function deleteThread(threadId) {
+  if (!confirm('この問い合わせスレッドを削除しますか？\nテスト用のやり取りなどを完全に消去します。元に戻せません。')) return;
+  try {
+    await db.collection('threads').doc(threadId).delete();
+    // ローカルキャッシュからも除去
+    Object.keys(_dmByPost).forEach(pid=>{
+      _dmByPost[pid] = _dmByPost[pid].filter(t=>t.id!==threadId);
+      if (!_dmByPost[pid].length) delete _dmByPost[pid];
+    });
+    activeDmUserId = null;
+    if (!_dmByPost[activeDmPost]) activeDmPost = Object.keys(_dmByPost)[0] || null;
+    if (activeDmPost) {
+      activeDmUserId = _dmByPost[activeDmPost][0]?.userId || null;
+      renderDMPanel();
+    } else {
+      $('dmPanel').innerHTML = '<div class="empty-state" style="padding:40px 20px;">問い合わせはまだありません</div>';
+    }
+    updateBadges();
+  } catch(e) { alert('削除に失敗しました: '+e.message); }
 }
 
 function goToDM(postId) {

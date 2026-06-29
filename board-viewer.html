@@ -267,17 +267,34 @@ async function sendAdminEmail(subject, message) {
   }
 }
 
-const CATS = [
-  {id:'all',    label:'すべて'},
-  {id:'notice', label:'お知らせ'},
-  {id:'report', label:'社内報'},
-  {id:'event',  label:'行事・イベント'},
-  {id:'biz',    label:'業務連絡'},
-  {id:'useful', label:'お役立ち情報'},
-  {id:'other',  label:'その他'},
+/* ─── カテゴリ（管理画面の config/board と連動）─── */
+const DEFAULT_CATS = [
+  {id:'notice', label:'お知らせ',      color:'#1b4f72'},
+  {id:'report', label:'社内報',        color:'#7b5ea7'},
+  {id:'event',  label:'行事・イベント', color:'#8a5c0a'},
+  {id:'biz',    label:'業務連絡',      color:'#1e6b45'},
+  {id:'useful', label:'お役立ち情報',   color:'#b5388a'},
+  {id:'other',  label:'その他',        color:'#555555'},
 ];
-const TCLS = {notice:'tag-notice',report:'tag-report',event:'tag-event',biz:'tag-biz',useful:'tag-useful',other:'tag-other'};
-const TLBL = {notice:'お知らせ',report:'社内報',event:'行事・イベント',biz:'業務連絡',useful:'お役立ち情報',other:'その他'};
+let CATEGORIES = DEFAULT_CATS.slice();
+let CATMAP     = {};
+function rebuildCatMaps(){ CATMAP={}; CATEGORIES.forEach(c=>CATMAP[c.id]=c); }
+function catLabel(id){ return CATMAP[id]?.label || id || 'その他'; }
+function catColor(id){ return CATMAP[id]?.color || '#555555'; }
+function catStyle(id){ const c=catColor(id); return `background:${c}22;color:${c};`; }
+let CATS = [];
+function rebuildCATS(){ CATS = [{id:'all',label:'すべて'}, ...CATEGORIES.map(c=>({id:c.id,label:c.label}))]; }
+rebuildCatMaps(); rebuildCATS();
+async function loadCategories(){
+  try{
+    const snap = await db.collection('config').doc('board').get();
+    if (snap.exists && Array.isArray(snap.data().categories) && snap.data().categories.length){
+      CATEGORIES = snap.data().categories;
+      rebuildCatMaps(); rebuildCATS();
+    }
+  }catch(e){ console.warn('カテゴリ設定の読み込みに失敗:', e); }
+}
+const TLBL = new Proxy({}, { get:(_,k)=>catLabel(k) });
 const FILE_ICON = n => {const e=n.split('.').pop().toLowerCase();return e==='pdf'?'📄':['ppt','pptx'].includes(e)?'📊':['doc','docx'].includes(e)?'📝':['xls','xlsx'].includes(e)?'📈':'📎';};
 
 /* ─── utils ─── */
@@ -386,6 +403,7 @@ async function checkApproval() {
 async function enterBoard() {
   $('hdrUser').textContent = `${currentUser.name}（${currentUser.dept}）`;
   switchScreen('screenBoard');
+  await loadCategories();
   await loadPosts();
 }
 
@@ -427,7 +445,7 @@ function renderList() {
     return `
       <div class="card${p.pinned?' pinned':''}${!read?' unread':''}" onclick="openDetail('${p.id}')">
         <div class="card-top">
-          <span class="tag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
+          <span class="tag" style="${catStyle(p.cat)}">${escHtml(catLabel(p.cat))}</span>
           ${p.pinned?`<span class="pin-mark">📌</span>`:''}
           ${!read?`<span class="new-dot"></span>`:''}
         </div>
@@ -465,7 +483,7 @@ async function openDetail(postId) {
     <div style="position:relative;"><div class="sheet-grip"></div><button class="close-x" onclick="closeOverlay('detailOverlay')">✕</button></div>
     <div class="sheet-head">
       <div class="sheet-tags">
-        <span class="tag ${TCLS[p.cat]}">${TLBL[p.cat]}</span>
+        <span class="tag" style="${catStyle(p.cat)}">${escHtml(catLabel(p.cat))}</span>
         ${p.pinned?`<span style="font-size:13px">📌 ピン留め</span>`:''}
       </div>
       <div class="sheet-title">${escHtml(p.title)}</div>

@@ -411,7 +411,9 @@ async function loadPosts() {
   $('list').innerHTML = '<div class="loading-msg">📋 読み込み中...</div>';
   try {
     const snap = await db.collection('posts').orderBy('createdAt','desc').get();
-    allPosts = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    const myDept = currentUser.dept;
+    allPosts = snap.docs.map(d => ({id:d.id, ...d.data()}))
+      .filter(p => !p.targetDept || p.targetDept === myDept);
     allPosts.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
     renderCats();
     renderList();
@@ -446,6 +448,7 @@ function renderList() {
       <div class="card${p.pinned?' pinned':''}${!read?' unread':''}" onclick="openDetail('${p.id}')">
         <div class="card-top">
           <span class="tag" style="${catStyle(p.cat)}">${escHtml(catLabel(p.cat))}</span>
+          ${p.targetDept?`<span class="tag" style="background:var(--accent-l);color:var(--accent);">▶ ${escHtml(p.targetDept)}向け</span>`:''}
           ${p.pinned?`<span class="pin-mark">📌</span>`:''}
           ${!read?`<span class="new-dot"></span>`:''}
         </div>
@@ -484,6 +487,7 @@ async function openDetail(postId) {
     <div class="sheet-head">
       <div class="sheet-tags">
         <span class="tag" style="${catStyle(p.cat)}">${escHtml(catLabel(p.cat))}</span>
+        ${p.targetDept?`<span class="tag" style="background:var(--accent-l);color:var(--accent);">▶ ${escHtml(p.targetDept)}向け</span>`:''}
         ${p.pinned?`<span style="font-size:13px">📌 ピン留め</span>`:''}
       </div>
       <div class="sheet-title">${escHtml(p.title)}</div>

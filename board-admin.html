@@ -251,7 +251,6 @@ const DEFAULT_CATS = [
 const CAT_SWATCHES = ['#1b4f72','#1e6b45','#8a5c0a','#7b5ea7','#b5388a','#b03030','#0e7490','#555555'];
 let CATEGORIES   = DEFAULT_CATS.slice();
 let CATMAP       = {};
-let POSTABLE_DEPTS = [];
 const DEPTS = ['1G','2G','3G','技術G','品質保証G','営業G','管理G','取締役会'];
 
 function rebuildCatMaps(){ CATMAP={}; CATEGORIES.forEach(c=>CATMAP[c.id]=c); }
@@ -269,10 +268,9 @@ async function loadConfig(seedIfAdmin){
     if (snap.exists){
       const d = snap.data();
       if (Array.isArray(d.categories) && d.categories.length) CATEGORIES = d.categories;
-      POSTABLE_DEPTS = Array.isArray(d.postableDepts) ? d.postableDepts : [];
     } else if (seedIfAdmin){
-      await ref.set({ categories: DEFAULT_CATS, postableDepts: [] });
-      CATEGORIES = DEFAULT_CATS.slice(); POSTABLE_DEPTS = [];
+      await ref.set({ categories: DEFAULT_CATS });
+      CATEGORIES = DEFAULT_CATS.slice();
     }
     rebuildCatMaps();
   }catch(e){ console.warn('config読み込みエラー:', e); }
@@ -299,7 +297,8 @@ auth.onAuthStateChanged(async user => {
     const u = snap.data();
     const isFullAdmin = u.isAdmin === true;
     await loadConfig(isFullAdmin);
-    const isPoster = !isFullAdmin && u.status === 'approved' && POSTABLE_DEPTS.includes(u.dept);
+    const postDepts = Array.isArray(u.postDepts) ? u.postDepts : [];
+    const isPoster = !isFullAdmin && u.status === 'approved' && u.canPost === true && postDepts.length > 0;
     if (!isFullAdmin && !isPoster) {
       await auth.signOut();
       showErr('aErr','この画面を利用する権限がありません');
@@ -415,6 +414,11 @@ async function loadPostList() {
     _postListenerUnsubscribe = db.collection('posts').orderBy('createdAt','desc')
       .onSnapshot(postSnap => {
         let posts = postSnap.docs.map(d=>({id:d.id,...d.data()}));
+        // 投稿モードの人は、自分が関係する投稿だけ表示（全社 or 割当部署 or 自分の投稿）
+        if (myRole !== 'admin') {
+          const mine = adminUser.postDepts||[];
+          posts = posts.filter(p => !p.targetDept || mine.includes(p.targetDept) || p.authorUid===adminUser.uid);
+        }
         posts.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
         if (!posts.length){$('postList').innerHTML='<div class="empty-state">投稿がありません</div>';return;}
         $('postList').innerHTML=posts.map(p=>{
@@ -426,10 +430,14 @@ async function loadPostList() {
           const isOwner = p.authorUid && p.authorUid===adminUser.uid;
           const canEdit = isAdmin || isOwner;
           const authorLabel = p.authorName ? `${esc(p.authorName)}${p.authorDept?`（${esc(p.authorDept)}）`:''}` : '総務（管理者）';
+          const tgtBadge = p.targetDept
+            ? `<span class="atag" style="background:var(--accent-l);color:var(--accent);">▶ ${esc(p.targetDept)}向け</span>`
+            : `<span class="atag" style="background:var(--surface2);color:var(--text2);">全社</span>`;
           return `
           <div class="acard">
             <div class="acard-top">
               <span class="atag" style="${catStyle(p.cat)}">${esc(catLabel(p.cat))}</span>
+              ${tgtBadge}
               ${p.pinned?`<span style="font-size:12px">📌</span>`:''}
               <span style="font-size:11px;color:var(--text3);margin-left:auto;">${fmtTs(p.createdAt)}${p.updatedAt?' ・編集済':''}</span>
             </div>
@@ -480,6 +488,12 @@ function renderNewPostForm() {
     return `<button class="csel" data-cat="${c.id}" onclick="selectCat(this)" style="${st}">${esc(c.label)}</button>`;
   }).join('');
 
+  // 対象部署の選択肢
+  const curTarget = (editDraft && editDraft.targetDept!==undefined) ? editDraft.targetDept : (myRole==='admin' ? '' : (adminUser.postDepts||[])[0] || '');
+  const allowedDepts = (myRole==='admin') ? DEPTS : (adminUser.postDepts||[]);
+  let targetOpts = (myRole==='admin') ? `<option value="" ${curTarget===''?'selected':''}>全社（全員に表示）</option>` : '';
+  targetOpts += allowedDepts.map(d=>`<option value="${esc(d)}" ${curTarget===d?'selected':''}>${esc(d)} 向け</option>`).join('');
+
   // カテゴリ管理（管理者のみ）
   const catMgmt = (myRole==='admin') ? `
     <div class="form-card" style="margin-bottom:12px;">
@@ -502,6 +516,11 @@ function renderNewPostForm() {
     <div class="form-row">
       <span class="form-row-label">カテゴリ</span>
       <div class="cat-row" id="catRow">${catBtns}</div>
+    </div>
+    <div class="form-row">
+      <span class="form-row-label">対象部署（表示先）</span>
+      <select class="form-input" id="fTargetDept">${targetOpts}</select>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">${myRole==='admin'?'「全社」は全員に表示されます。部署を選ぶとその部署のメンバーにだけ表示されます。':'あなたに割り当てられた部署にだけ投稿できます。'}</div>
     </div>
     <div class="form-row">
       <span class="form-row-label">タイトル</span>
@@ -618,7 +637,7 @@ async function startEditPost(id) {
     selCat       = p.cat || CATEGORIES[0].id;
     fileEntries  = (p.files||[]).map(f=>({...f}));
     bnEntries    = (p.backNumbers||[]).map(b=>({...b}));
-    editDraft    = { title:p.title||'', body:p.body||'', pin:!!p.pinned };
+    editDraft    = { title:p.title||'', body:p.body||'', pin:!!p.pinned, targetDept:p.targetDept||'' };
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab==='new'));
     ['tabPosts','tabNew','tabUsers','tabDms','tabSettings'].forEach(t=>$(t).style.display='none');
     $('tabNew').style.display='';
@@ -679,30 +698,38 @@ async function submitPost() {
   hideErr('postErr');
   const title=v('fTitle'), body=v('fBody'), pin=$('fPin').checked;
   const notify = $('fNotify') ? $('fNotify').checked : false;
+  const targetDept = $('fTargetDept') ? $('fTargetDept').value : '';
   if (!title||!body) return showErr('postErr','タイトルと本文を入力してください');
+  // 投稿者（簡易モード）は割り当てられた部署のみ。全社・他部署は不可
+  if (myRole!=='admin') {
+    const allowed = adminUser.postDepts||[];
+    if (!targetDept || !allowed.includes(targetDept)) {
+      return showErr('postErr','投稿できる対象部署を選んでください');
+    }
+  }
   const isEdit = !!editingPostId;
   const btn=$('postSubmitBtn'); btn.disabled=true; btn.textContent= isEdit?'更新中...':'投稿中...';
   try {
     if (isEdit) {
       const upd = {
-        cat:selCat, title, body, pinned:pin,
+        cat:selCat, title, body, pinned:pin, targetDept,
         files:[...fileEntries], backNumbers:[...bnEntries],
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       if ($('fResetRead') && $('fResetRead').checked) upd.readBy = [];
       await db.collection('posts').doc(editingPostId).update(upd);
-      if (notify) await notifyNewPost({ cat:selCat, title, body, pinned:pin });
+      if (notify) await notifyNewPost({ cat:selCat, title, body, pinned:pin, targetDept });
       editingPostId = null; editDraft = null;
       alert('更新しました！');
     } else {
       await db.collection('posts').add({
-        cat:selCat, title, body, pinned:pin,
+        cat:selCat, title, body, pinned:pin, targetDept,
         files:[...fileEntries], backNumbers:[...bnEntries],
         readBy:[],
         authorUid: adminUser.uid, authorName: adminUser.name||'', authorDept: adminUser.dept||'',
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      if (notify) await notifyNewPost({ cat:selCat, title, body, pinned:pin });
+      if (notify) await notifyNewPost({ cat:selCat, title, body, pinned:pin, targetDept });
       if (selCat === 'event') {
         if (confirm(`「${title}」をOutlookカレンダーに追加しますか？`)) downloadICS(title, body);
       } else {
@@ -726,21 +753,24 @@ async function notifyNewPost(post) {
   const catName = catLabel(post.cat);
   const dateStr = new Date().toLocaleDateString('ja-JP');
   const titleLine = post.pinned ? `📌 ${post.title}` : post.title;
+  const target = post.targetDept ? `${post.targetDept}向け` : '全社';
   const text =
 `神村電機工業 社内掲示板に新しい投稿があります。
 
 【${catName}】${titleLine}
+対象：${target}
 投稿日：${dateStr}
 
 ${post.body||''}
 
 — 社内掲示板アプリで全文をご確認ください。`;
-  // Power Automate（HTTP要求トリガー）／その他Webhookで受け取れる汎用JSON
   const payload = {
     type: 'new_post',
     title: post.title,
     titleLine,
     category: catName,
+    target,
+    targetDept: post.targetDept || '',
     date: dateStr,
     pinned: !!post.pinned,
     body: post.body || '',
@@ -918,32 +948,45 @@ function setUF(btn) {
   loadUserList();
 }
 
-function deptPostPanelHTML() {
-  const rows = DEPTS.map((d,i)=>`
-    <label style="display:flex;align-items:center;gap:8px;padding:5px 4px;font-size:13px;cursor:pointer;">
-      <input type="checkbox" id="pd_${i}" ${POSTABLE_DEPTS.includes(d)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent);">
+// 各承認済みユーザーの「投稿許可＋対象部署」UI
+function postPermHTML(u) {
+  if (u.status !== 'approved') return '';
+  const on = u.canPost === true;
+  const cur = Array.isArray(u.postDepts) ? u.postDepts : [];
+  const depts = DEPTS.map((d,i)=>`
+    <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:3px 10px;">
+      <input type="checkbox" id="pd_${u.uid}_${i}" value="${esc(d)}" ${cur.includes(d)?'checked':''} style="width:14px;height:14px;accent-color:var(--accent);">
       ${esc(d)}
     </label>`).join('');
   return `
-    <div class="user-card" style="margin-bottom:12px;border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent),var(--shadow);">
-      <div style="padding:12px 14px;">
-        <div style="font-size:14px;font-weight:700;margin-bottom:4px;">📝 投稿できる部署</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:10px;">
-          チェックした部署の<b>承認済みメンバー</b>は、この管理画面に「投稿モード」でログインでき、新規投稿と自分の投稿の編集・削除ができます（社員承認・問い合わせ・設定は管理者のみ）。
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">${rows}</div>
-        <button class="settings-save-btn" style="margin-top:12px;" onclick="savePostableDepts()">保存する</button>
-        <span id="pdMsg" style="font-size:12px;margin-left:10px;color:var(--green);display:none;">保存しました</span>
+    <div style="padding:10px 14px;border-top:1px dashed var(--border);background:var(--surface2);">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;">
+        <input type="checkbox" id="cp_${u.uid}" ${on?'checked':''}
+          onchange="document.getElementById('pdwrap_${u.uid}').style.display=this.checked?'block':'none'"
+          style="width:16px;height:16px;accent-color:var(--accent);">
+        📝 投稿を許可する
+      </label>
+      <div id="pdwrap_${u.uid}" style="display:${on?'block':'none'};margin-top:8px;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">投稿できる対象部署（チェックした部署のメンバーにだけ表示されます）</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${depts}</div>
+        <button class="settings-save-btn" style="margin-top:10px;padding:6px 16px;font-size:12px;" onclick="savePostPerm('${u.uid}')">権限を保存</button>
+        <span id="ppMsg_${u.uid}" style="font-size:12px;margin-left:10px;color:var(--green);display:none;">保存しました</span>
       </div>
     </div>`;
 }
 
-async function savePostableDepts() {
-  const sel = DEPTS.filter((d,i)=>$(`pd_${i}`)?.checked);
+async function savePostPerm(uid) {
+  const allow = $(`cp_${uid}`)?.checked === true;
+  const depts = DEPTS.filter((d,i)=>$(`pd_${uid}_${i}`)?.checked);
+  if (allow && depts.length === 0) {
+    return alert('対象部署を1つ以上選んでください。\n（許可しない場合は「投稿を許可する」のチェックを外してください）');
+  }
   try {
-    await db.collection('config').doc('board').set({postableDepts:sel}, {merge:true});
-    POSTABLE_DEPTS = sel;
-    const m=$('pdMsg'); if(m){ m.style.display='inline'; setTimeout(()=>m.style.display='none',1500); }
+    await db.collection('users').doc(uid).update({
+      canPost: allow,
+      postDepts: allow ? depts : []
+    });
+    const m=$(`ppMsg_${uid}`); if(m){ m.style.display='inline'; setTimeout(()=>m.style.display='none',1500); }
   } catch(e) { alert('保存に失敗しました: '+e.message); }
 }
 
@@ -954,25 +997,29 @@ async function loadUserList() {
     let users=snap.docs.map(d=>({uid:d.id,...d.data()}));
     if (ufCurrent!=='all') users=users.filter(u=>u.status===ufCurrent);
     users.sort((a,b)=>a.status==='pending'?-1:b.status==='pending'?1:0);
-    const listHTML = !users.length
-      ? '<div class="empty-state">該当するユーザーはいません</div>'
-      : users.map(u=>`
+    if (!users.length){ $('userList').innerHTML='<div class="empty-state">該当するユーザーはいません</div>'; return; }
+    $('userList').innerHTML=users.map(u=>{
+      const permBadge = (u.status==='approved' && u.canPost)
+        ? `<span class="user-status-badge" style="background:var(--accent-l);color:var(--accent);margin-left:6px;">投稿可：${(u.postDepts||[]).map(esc).join('・')||'—'}</span>` : '';
+      return `
       <div class="user-card${u.status==='pending'?' pending':''}">
         <div class="user-info">
           <div class="user-avatar" style="background:${avColor(u.name)}">${u.name.charAt(0)}</div>
-          <div><div class="user-name">${esc(u.name)}</div><div class="user-detail">${esc(u.dept)} ・ ${esc(u.email||'')}</div></div>
+          <div style="flex:1;min-width:0;"><div class="user-name">${esc(u.name)}</div><div class="user-detail">${esc(u.dept)} ・ ${esc(u.email||'')}</div></div>
           <div class="user-status-badge ${u.status==='approved'?'st-approved':u.status==='pending'?'st-pending':'st-rejected'}">
             ${u.status==='approved'?'承認済み':u.status==='pending'?'承認待ち':'否認'}
           </div>
         </div>
+        ${permBadge?`<div style="padding:0 14px 4px;">${permBadge}</div>`:''}
         <div class="user-actions">
           ${u.status==='pending'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認する</button><button class="btn-reject" onclick="setUserStatus('${u.uid}','rejected')">✗ 否認する</button>`:''}
           ${u.status==='approved'?`<button class="btn-revoke" onclick="setUserStatus('${u.uid}','rejected')">アクセス取り消し</button>`:''}
           ${u.status==='rejected'?`<button class="btn-approve" onclick="setUserStatus('${u.uid}','approved')">✓ 承認に変更</button>`:''}
           <button class="btn-del" style="margin-left:auto;" onclick="deleteUser('${u.uid}','${esc(u.name)}')">🗑 削除</button>
         </div>
-      </div>`).join('');
-    $('userList').innerHTML = deptPostPanelHTML() + listHTML;
+        ${postPermHTML(u)}
+      </div>`;
+    }).join('');
     updateBadges();
   } catch(e) { $('userList').innerHTML=`<div class="empty-state">読み込みエラー: ${e.message}</div>`; }
 }

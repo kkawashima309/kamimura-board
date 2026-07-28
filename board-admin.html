@@ -743,17 +743,56 @@ async function submitPost() {
   }
 }
 
-/* ─── 新規投稿の通知（Webhook → Power Automateで全員メール等）─── */
+/* ─── 新規投稿の通知 ─── */
 function getNotifyWebhook() {
   return localStorage.getItem('notify_webhook_url') || localStorage.getItem('teams_webhook_url') || '';
 }
+function getNotifyMethod() {
+  const m = localStorage.getItem('notify_method');
+  if (m) return m;
+  // 未設定なら、宛先があればメール、Webhookがあればwebhook、既定はメール
+  if ((localStorage.getItem('notify_to')||'').trim()) return 'mailto';
+  if (getNotifyWebhook()) return 'webhook';
+  return 'mailto';
+}
+
 async function notifyNewPost(post) {
-  const webhookUrl = getNotifyWebhook();
-  if (!webhookUrl) return;
   const catName = catLabel(post.cat);
   const dateStr = new Date().toLocaleDateString('ja-JP');
   const titleLine = post.pinned ? `📌 ${post.title}` : post.title;
   const target = post.targetDept ? `${post.targetDept}向け` : '全社';
+  const method = getNotifyMethod();
+
+  if (method === 'mailto') {
+    const to = (localStorage.getItem('notify_to')||'').replace(/；|;/g, ',').replace(/\s*,\s*/g, ',').trim();
+    const cc = (localStorage.getItem('notify_cc')||'').replace(/；|;/g, ',').replace(/\s*,\s*/g, ',').trim();
+    if (!to) { alert('通知メールの宛先が未設定です。「設定」タブで宛先を登録してください。'); return; }
+    // mailtoはURL長に上限があるため本文（body）は先頭のみ差し込み、全文はアプリ参照
+    const bodyPreview = (post.body||'').length > 300 ? (post.body.slice(0,300) + '…（続きは掲示板アプリで）') : (post.body||'');
+    const subject = `【社内掲示板】${titleLine}`;
+    const bodyText =
+`神村電機工業 社内掲示板に新しい投稿があります。
+
+【${catName}】${titleLine}
+対象：${target}
+投稿日：${dateStr}
+
+${bodyPreview}
+
+— 全文は社内掲示板アプリでご確認ください。`;
+    const q = [];
+    if (cc) q.push('cc=' + encodeURIComponent(cc));
+    q.push('subject=' + encodeURIComponent(subject));
+    q.push('body=' + encodeURIComponent(bodyText));
+    const mailto = 'mailto:' + encodeURIComponent(to) + '?' + q.join('&');
+    // 既定のメールソフト（Thunderbird等）の作成画面を開く
+    window.location.href = mailto;
+    return;
+  }
+
+  // webhook 方式（Power Automate 等）
+  const webhookUrl = getNotifyWebhook();
+  if (!webhookUrl) return;
   const text =
 `神村電機工業 社内掲示板に新しい投稿があります。
 
@@ -765,21 +804,14 @@ ${post.body||''}
 
 — 社内掲示板アプリで全文をご確認ください。`;
   const payload = {
-    type: 'new_post',
-    title: post.title,
-    titleLine,
-    category: catName,
-    target,
-    targetDept: post.targetDept || '',
-    date: dateStr,
-    pinned: !!post.pinned,
-    body: post.body || '',
-    text
+    type: 'new_post', title: post.title, titleLine, category: catName,
+    target, targetDept: post.targetDept || '', date: dateStr,
+    pinned: !!post.pinned, body: post.body || '', text
   };
   try {
     await fetch(webhookUrl, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
       body: JSON.stringify(payload)
     });
   } catch(e) {
@@ -829,7 +861,7 @@ function downloadICS(title, description) {
 /* ─── M365設定パネル ─── */
 function renderSettingsPanel() {
   const webhookUrl = getNotifyWebhook();
-  const isSet      = webhookUrl.length > 0;
+  const notifyMethod = getNotifyMethod();
   $('settingsPanel').innerHTML = `
     <div class="settings-card">
       <div class="settings-title">Microsoft 365 連携設定</div>
@@ -837,27 +869,67 @@ function renderSettingsPanel() {
 
       <div class="settings-section">
         <div class="settings-section-title">
-          📣 新規投稿の通知（登録メンバーへメール）
-          <span class="settings-status ${isSet?'st-set':'st-unset'}">${isSet?'設定済み':'未設定'}</span>
+          📣 新規投稿の通知
         </div>
-        <div style="font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:12px;">
-          投稿時に「📣 登録メンバーへ通知する」にチェックすると、ここで設定したURLへ投稿内容が送られます。<br>
-          <b>Power Automate（Microsoft 365付属）</b>で「HTTP要求を受信したとき」→「Outlookでメール送信」のフローを作ると、<b>追加費用なし・通数制限なし</b>で全員に自動メールできます。
+        <div style="font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:10px;">
+          投稿時に「📣 登録メンバーへ通知する」にチェックすると、下で選んだ方法で通知します。
         </div>
-        <div class="howto-step"><div class="howto-num">1</div><div class="howto-text"><a href="https://make.powerautomate.com/" target="_blank" rel="noopener" style="color:var(--accent);">make.powerautomate.com</a> で「<b>インスタント クラウド フロー</b>」を新規作成 → トリガーに「<b>HTTP要求の受信時</b>」を選択</div></div>
-        <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">要求本文のJSONスキーマに <code>title</code> <code>category</code> <code>text</code> を含めて保存（保存するとURLが発行されます）</div></div>
-        <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">次のアクションに「<b>Outlook → メールを送信(V2)</b>」を追加。宛先に配布リスト（例：全社員グループ）、件名に <code>【掲示板】@{triggerBody()?['title']}</code>、本文に <code>@{triggerBody()?['text']}</code> を入れる</div></div>
-        <div class="howto-step"><div class="howto-num">4</div><div class="howto-text">トリガーで発行された <b>HTTP POST URL</b> をコピーして、下に貼り付けて保存</div></div>
-        <label class="form-label" style="margin-top:12px;">通知用 Webhook URL（Power AutomateのHTTP POST URL）</label>
-        <input class="form-input" id="sTeamsUrl" type="url"
-          placeholder="https://prod-XX.japaneast.logic.azure.com:443/workflows/..."
-          value="${esc(webhookUrl)}">
-        <button class="settings-save-btn" onclick="saveTeamsWebhook()">保存する</button>
-        ${isSet?`<button class="settings-clear-btn" onclick="clearTeamsWebhook()">削除</button>`:''}
+        <label class="form-label">通知方法</label>
+        <select class="form-input" id="sNotifyMethod" onchange="onNotifyMethodChange()">
+          <option value="mailto" ${notifyMethod!=='webhook'?'selected':''}>メールソフトで作成（Thunderbird等・無料）</option>
+          <option value="webhook" ${notifyMethod==='webhook'?'selected':''}>Webhookで自動送信（Power Automate）</option>
+        </select>
+
+        <div id="mailtoBox" style="display:${notifyMethod!=='webhook'?'block':'none'};margin-top:12px;">
+          <div style="font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:10px;">
+            投稿すると、お使いのメールソフト（Thunderbird等）の<b>作成画面が宛先・本文入りで開きます</b>。内容を確認して送信ボタンを押すだけ。<b>追加費用なし・通数制限なし</b>で、今の運用と同じ流れです。
+          </div>
+          <label class="form-label">宛先（To）</label>
+          <input class="form-input" id="sNotifyTo" type="text"
+            placeholder="配布リスト（例 kdk_all@kamidk.co.jp）／複数は ; 区切り"
+            value="${esc(localStorage.getItem('notify_to')||'')}">
+          <label class="form-label">CC（任意）</label>
+          <input class="form-input" id="sNotifyCc" type="text"
+            placeholder="例 kawashima@kamidk.co.jp"
+            value="${esc(localStorage.getItem('notify_cc')||'')}">
+          <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-top:8px;">
+            ※ 送信は投稿した人のPCのメールソフトで開きます（送信ボタンは手動）。<br>
+            ※ 本文が長いと作成画面で切れることがあるため、通知メールには本文の先頭のみ差し込み、全文はアプリで確認する形にしています。<br>
+            ※ 宛先が多い場合は「1つで全員に届く配布リスト」を用意すると簡単です。
+          </div>
+        </div>
+
+        <div id="webhookBox" style="display:${notifyMethod==='webhook'?'block':'none'};margin-top:12px;">
+          <div style="font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:10px;">
+            <b>Power Automate（M365付属・無料）</b>で「Teamsのwebhook要求を受信したとき」→「Outlookでメール送信」のフローを作ると、<b>クリック不要で全員に自動メール</b>できます。（有料の「HTTP要求の受信時」は使いません）
+          </div>
+          <div class="howto-step"><div class="howto-num">1</div><div class="howto-text"><a href="https://make.powerautomate.com/" target="_blank" rel="noopener" style="color:var(--accent);">make.powerautomate.com</a>で「作成」→「インスタント クラウド フロー」。トリガー検索で「<b>Teams webhook</b>」→「<b>Teamsのwebhook要求を受信したとき</b>」</div></div>
+          <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">「<b>フローをトリガーできるユーザー</b>」を「<b>すべてのユーザー</b>」に</div></div>
+          <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">「<b>JSONの解析</b>」を追加（コンテンツ＝本文、スキーマは下のサンプルから生成）</div></div>
+          <div class="howto-step"><div class="howto-num">4</div><div class="howto-text">「<b>Office 365 Outlook：メールの送信(V2)</b>」を追加。宛先に配布リスト、件名・本文に解析項目を差し込む</div></div>
+          <div class="howto-step"><div class="howto-num">5</div><div class="howto-text">保存 → 発行された <b>HTTP POST URL</b> を下に貼り付け</div></div>
+          <label class="form-label" style="margin-top:12px;">通知用 Webhook URL</label>
+          <input class="form-input" id="sTeamsUrl" type="url"
+            placeholder="https://...logic.azure.com... / .../triggers/manual/paths/invoke"
+            value="${esc(webhookUrl)}">
+          <details style="margin-top:10px;">
+            <summary style="font-size:12px;color:var(--accent);cursor:pointer;">「JSONの解析」用サンプルJSON</summary>
+            <pre style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;overflow:auto;white-space:pre-wrap;">{
+  "type": "new_post",
+  "title": "サンプルタイトル",
+  "category": "お知らせ",
+  "target": "全社",
+  "targetDept": "",
+  "date": "2026/07/02",
+  "pinned": false,
+  "body": "本文サンプル",
+  "text": "メール本文サンプル"
+}</pre>
+          </details>
+        </div>
+
+        <button class="settings-save-btn" style="margin-top:12px;" onclick="saveNotifySettings()">保存する</button>
         <div id="teamsMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
-        <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-top:10px;">
-          ※ Teamsチャンネルへ流したい場合は、Power Automateのアクションを「Teams → メッセージを投稿」に変えるだけでOKです（旧Incoming Webhookコネクタは Microsoft が提供終了済みのため動きません）。
-        </div>
       </div>
 
       <div class="settings-section">
@@ -899,22 +971,29 @@ function renderSettingsPanel() {
     </div>`;
 }
 
-function saveTeamsWebhook() {
-  const url = v('sTeamsUrl');
-  if (url && !url.startsWith('https://')) {
-    showTeamsMsg('URLが正しくありません（https:// で始まるURLを入力してください）', 'red');
-    return;
-  }
-  localStorage.setItem('notify_webhook_url', url);
-  localStorage.removeItem('teams_webhook_url'); // 旧キーは整理
-  showTeamsMsg(url ? '保存しました。次回の投稿で「通知する」にチェックすると送信されます。' : 'URLを削除しました。', 'green');
-  setTimeout(renderSettingsPanel, 1200);
+function onNotifyMethodChange() {
+  const m = $('sNotifyMethod') ? $('sNotifyMethod').value : 'mailto';
+  if ($('mailtoBox'))  $('mailtoBox').style.display  = (m==='webhook') ? 'none'  : 'block';
+  if ($('webhookBox')) $('webhookBox').style.display = (m==='webhook') ? 'block' : 'none';
 }
 
-function clearTeamsWebhook() {
-  localStorage.removeItem('notify_webhook_url');
-  localStorage.removeItem('teams_webhook_url');
-  renderSettingsPanel();
+function saveNotifySettings() {
+  const method = $('sNotifyMethod') ? $('sNotifyMethod').value : 'mailto';
+  localStorage.setItem('notify_method', method);
+  if (method === 'mailto') {
+    const to = v('sNotifyTo'), cc = v('sNotifyCc');
+    if (!to) { showTeamsMsg('宛先（To）を入力してください。', 'red'); return; }
+    localStorage.setItem('notify_to', to);
+    localStorage.setItem('notify_cc', cc);
+    showTeamsMsg('保存しました。投稿時に「通知する」をチェックすると、メールソフトの作成画面が開きます。', 'green');
+  } else {
+    const url = v('sTeamsUrl');
+    if (url && !url.startsWith('https://')) { showTeamsMsg('URLは https:// で始まる必要があります。', 'red'); return; }
+    localStorage.setItem('notify_webhook_url', url);
+    localStorage.removeItem('teams_webhook_url');
+    showTeamsMsg(url ? '保存しました。投稿時に「通知する」をチェックすると自動送信されます。' : 'URLを保存しました。', 'green');
+  }
+  setTimeout(renderSettingsPanel, 1400);
 }
 
 function showTeamsMsg(msg, color) {
@@ -1030,7 +1109,7 @@ async function setUserStatus(uid, status) {
 }
 
 async function deleteUser(uid, name) {
-  if (!confirm(`「${name}」のデータを削除しますか？\nこの操作は元に戻せません。`)) return;
+  if (!confirm(`「${name}」の登録を削除しますか？\n\n・掲示板へのアクセスはできなくなります。\n・同じメールアドレスで再度「新規登録」すれば、再申請できます（承認待ちに戻ります）。\n\nこの操作は元に戻せません。`)) return;
   try {
     await db.collection('users').doc(uid).delete();
     loadUserList();

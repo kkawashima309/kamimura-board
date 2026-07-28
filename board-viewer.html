@@ -173,6 +173,7 @@ body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans
       <input class="auth-input" id="lPw" type="password" placeholder="••••••••">
       <button class="auth-btn" id="lBtn" onclick="doLogin()">ログイン</button>
       <div class="auth-err" id="lErr"></div>
+      <div class="auth-link" style="margin-top:10px;font-size:12px;" onclick="doPasswordReset()">パスワードを忘れた場合（再設定メールを送る）</div>
     </div>
     <div class="auth-link" onclick="switchScreen('screenRegister')">新規登録はこちら</div>
   </div>
@@ -317,11 +318,19 @@ function nowStr() {
 }
 
 /* ─── auth state ─── */
+let registering = false;   // 登録処理中フラグ（onAuthStateChangedの誤作動防止）
 auth.onAuthStateChanged(async firebaseUser => {
   if (!firebaseUser) { switchScreen('screenRegister'); return; }
+  if (registering) return;   // 登録中はdoRegister側で画面遷移を行う
   try {
     const snap = await db.collection('users').doc(firebaseUser.uid).get();
-    if (!snap.exists) { await auth.signOut(); return; }
+    if (!snap.exists) {
+      // 認証は通ったが登録情報がない（管理者に削除された等）→ 再登録へ誘導
+      await auth.signOut();
+      switchScreen('screenRegister');
+      showErr('rErr','以前の登録は削除されています。同じメールアドレスで、もう一度この画面から登録申請してください。');
+      return;
+    }
     currentUser = { uid: firebaseUser.uid, ...snap.data() };
     if (currentUser.status === 'approved') enterBoard();
     else showPending();
@@ -331,26 +340,60 @@ auth.onAuthStateChanged(async firebaseUser => {
   }
 });
 
-/* ─── register ─── */
+/* ─── register（新規／削除後の再登録の両対応）─── */
 async function doRegister() {
   hideErr('rErr');
   const name=v('rName'), dept=v('rDept'), email=v('rEmail'), pw=v('rPw');
   if (!name||!dept||!email||!pw) return showErr('rErr','すべての項目を入力してください');
   if (pw.length < 6) return showErr('rErr','パスワードは6文字以上で設定してください');
   const btn=$('rBtn'); btn.disabled=true; btn.textContent='送信中...';
+  registering = true;
   try {
-    const cred = await auth.createUserWithEmailAndPassword(email, pw);
-    await db.collection('users').doc(cred.user.uid).set({
+    let uid;
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(email, pw);
+      uid = cred.user.uid;
+    } catch(e) {
+      if (e.code === 'auth/email-already-in-use') {
+        // 認証アカウントは残っている（＝以前削除された等）。本人のパスワードで
+        // サインインし直し、登録情報を作り直す。
+        let cred;
+        try {
+          cred = await auth.signInWithEmailAndPassword(email, pw);
+        } catch(e2) {
+          registering=false; btn.disabled=false; btn.textContent='登録申請する';
+          if (e2.code==='auth/wrong-password' || e2.code==='auth/invalid-credential') {
+            return showErr('rErr','このメールアドレスは既に使われています。以前と同じパスワードを入力するか、ログイン画面の「パスワードを忘れた場合」から再設定してください。');
+          }
+          return showErr('rErr', e2.message);
+        }
+        uid = cred.user.uid;
+        // すでに登録情報がある場合はそのまま振り分け（重複登録を防止）
+        const existing = await db.collection('users').doc(uid).get();
+        if (existing.exists) {
+          registering=false;
+          currentUser = { uid, ...existing.data() };
+          if (currentUser.status === 'approved') enterBoard(); else showPending();
+          return;
+        }
+        // 登録情報が無い＝削除済み → このあと pending で作り直す
+      } else {
+        throw e;
+      }
+    }
+    await db.collection('users').doc(uid).set({
       name, dept, email, status:'pending', isAdmin:false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    // 管理者へメール通知
     sendAdminEmail(
       '【社内掲示板】新しい社員登録申請があります',
       `以下の方から登録申請がありました。\n\n氏名：${name}\n部署：${dept}\nメール：${email}\n\n管理者画面の「社員承認」タブから承認してください。`
     );
-    // onAuthStateChanged → showPending
+    registering=false;
+    currentUser = { uid, name, dept, email, status:'pending' };
+    showPending();
   } catch(e) {
+    registering=false;
     btn.disabled=false; btn.textContent='登録申請する';
     const m = {
       'auth/email-already-in-use':'このメールアドレスはすでに登録されています',
@@ -358,6 +401,23 @@ async function doRegister() {
       'auth/weak-password':'パスワードが弱すぎます（6文字以上）',
     };
     showErr('rErr', m[e.code] || e.message);
+  }
+}
+
+/* ─── パスワード再設定メール ─── */
+async function doPasswordReset() {
+  const email = v('lEmail');
+  if (!email) { showErr('lErr','メールアドレスを入力してから押してください'); return; }
+  try {
+    await auth.sendPasswordResetEmail(email);
+    hideErr('lErr');
+    alert(`${email} にパスワード再設定メールを送信しました。メールのリンクから再設定してください。`);
+  } catch(e) {
+    const m = {
+      'auth/user-not-found':'このメールアドレスは登録されていません',
+      'auth/invalid-email':'メールアドレスの形式が正しくありません',
+    };
+    showErr('lErr', m[e.code] || e.message);
   }
 }
 

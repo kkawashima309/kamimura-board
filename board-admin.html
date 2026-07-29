@@ -764,8 +764,10 @@ async function notifyNewPost(post) {
   const method = getNotifyMethod();
 
   if (method === 'mailto') {
-    const to = (localStorage.getItem('notify_to')||'').replace(/；|;/g, ',').replace(/\s*,\s*/g, ',').trim();
-    const cc = (localStorage.getItem('notify_cc')||'').replace(/；|;/g, ',').replace(/\s*,\s*/g, ',').trim();
+    const norm = s => (s||'').replace(/；|;/g, ',').replace(/\s*,\s*/g, ',').replace(/^,|,$/g,'').trim();
+    const to  = norm(localStorage.getItem('notify_to'));
+    const cc  = norm(localStorage.getItem('notify_cc'));
+    const bcc = norm(localStorage.getItem('notify_bcc'));
     if (!to) { alert('通知メールの宛先が未設定です。「設定」タブで宛先を登録してください。'); return; }
     // mailtoはURL長に上限があるため本文（body）は先頭のみ差し込み、全文はアプリ参照
     const bodyPreview = (post.body||'').length > 300 ? (post.body.slice(0,300) + '…（続きは掲示板アプリで）') : (post.body||'');
@@ -781,7 +783,8 @@ ${bodyPreview}
 
 — 全文は社内掲示板アプリでご確認ください。`;
     const q = [];
-    if (cc) q.push('cc=' + encodeURIComponent(cc));
+    if (cc)  q.push('cc='  + encodeURIComponent(cc));
+    if (bcc) q.push('bcc=' + encodeURIComponent(bcc));
     q.push('subject=' + encodeURIComponent(subject));
     q.push('body=' + encodeURIComponent(bodyText));
     const mailto = 'mailto:' + encodeURIComponent(to) + '?' + q.join('&');
@@ -892,10 +895,20 @@ function renderSettingsPanel() {
           <input class="form-input" id="sNotifyCc" type="text"
             placeholder="例 kawashima@kamidk.co.jp"
             value="${esc(localStorage.getItem('notify_cc')||'')}">
+          <label class="form-label">BCC（任意・社員のアドレスを互いに見せない場合はここへ）</label>
+          <input class="form-input" id="sNotifyBcc" type="text"
+            placeholder="例 sawamura@kamidk.co.jp; matsuda@kamidk.co.jp; ..."
+            value="${esc(localStorage.getItem('notify_bcc')||'')}">
+          <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-top:10px;background:var(--accent-l);border-radius:8px;padding:10px 12px;">
+            <b>おすすめの設定</b><br>
+            ・配布リストがある場合 … <b>To</b> にそのアドレス1つだけ<br>
+            ・配布リストがない場合 … <b>To</b> に自分、<b>BCC</b> に社員全員（アドレスが互いに見えません）<br>
+            ・動作確認だけしたい場合 … <b>To</b> に自分だけでOK
+          </div>
           <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-top:8px;">
+            ※ 複数アドレスは「;」または「,」区切りで入力してください。<br>
             ※ 送信は投稿した人のPCのメールソフトで開きます（送信ボタンは手動）。<br>
-            ※ 本文が長いと作成画面で切れることがあるため、通知メールには本文の先頭のみ差し込み、全文はアプリで確認する形にしています。<br>
-            ※ 宛先が多い場合は「1つで全員に届く配布リスト」を用意すると簡単です。
+            ※ 本文が長いと作成画面で切れることがあるため、通知メールには本文の先頭のみ差し込み、全文はアプリで確認する形にしています。
           </div>
         </div>
 
@@ -981,10 +994,11 @@ function saveNotifySettings() {
   const method = $('sNotifyMethod') ? $('sNotifyMethod').value : 'mailto';
   localStorage.setItem('notify_method', method);
   if (method === 'mailto') {
-    const to = v('sNotifyTo'), cc = v('sNotifyCc');
+    const to = v('sNotifyTo'), cc = v('sNotifyCc'), bcc = v('sNotifyBcc');
     if (!to) { showTeamsMsg('宛先（To）を入力してください。', 'red'); return; }
     localStorage.setItem('notify_to', to);
     localStorage.setItem('notify_cc', cc);
+    localStorage.setItem('notify_bcc', bcc);
     showTeamsMsg('保存しました。投稿時に「通知する」をチェックすると、メールソフトの作成画面が開きます。', 'green');
   } else {
     const url = v('sTeamsUrl');
